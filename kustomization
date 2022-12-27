@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace.yaml
+  - wordpress-deployment.yaml
+  - wordpress-service.yaml
+  - wordpress-configmap.yaml
+  - cluster-issuer.yaml
+  - fast-cgi-configmap.yaml
+  - ingress.yaml
+  - nginx-configmap.yaml

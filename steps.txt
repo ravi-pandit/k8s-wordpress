@@ -1,0 +1,18 @@
+Steps to setup K8S with laravel and terraform:- 
+
+1. Database RDS
+2. Laravel Dockerfile and add database credentials in laravel.
+3. docker image build and push to Dockerhub
+4. create k8s files.
+5. configuer the k8s cluster and worker nodes with terraform
+6. 
+
+How to delete secret from AWS CLI:- 
+- aws secretsmanager delete-secret --secret-id password --force-delete-without-recovery --region ap-south-1
+
+How to get secret from AWS CLI:- 
+aws secretsmanager get-secret-value --secret-id MyTestSecret
+
+
+eksctl utils associate-iam-oidc-provider --region <region-code> \
+    --cluster  --approve
