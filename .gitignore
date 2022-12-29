@@ -5,7 +5,6 @@
 *.tfstate
 *.tfstate.*
 
-.gitlab-ci.yml
 
 # Crash log files
 crash.log

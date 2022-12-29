@@ -36,7 +36,7 @@ spec:
       #serviceAccountName: aws-load-balancer-controller
       containers:
       - name: app
-        image: wordpress:php7.4-fpm
+        image: rrpnarola/wordpress:php7.4-fpm
         imagePullPolicy: IfNotPresent
         volumeMounts:
           - name: shared-files

@@ -1,0 +1,54 @@
+stages:
+  - ...
+  - docker build
+  - docker push
+  - deploy services
+  - deploy app
+
+ 
+Build docker image:
+  image: docker:stable
+  stage: docker build
+  before_script:
+    - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
+  script:
+    - docker build --file Dockerfile-CI -t ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA} .
+    - docker tag ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA} ${CI_REGISTRY_IMAGE}:latest
+ 
+Push to registry:
+  image: docker:stable
+  stage: docker push
+  before_script:
+    - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
+  script:
+    - docker push ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}
+    - docker push ${CI_REGISTRY_IMAGE}:latest
+
+
+Deploy services on EKS:
+  image: matshareyourscript/aws-helm-kubectl
+  stage: deploy services
+  before_script:
+    - export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+    - export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+    - export AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+  script:
+    - cd .kubernetes
+    - kubectl --kubeconfig ${KUBECONFIG} apply -f services.yaml
+  rules:
+    changes:
+      - .kubernetes/services.yaml
+
+
+Deploy app on EKS:
+  image: matshareyourscript/aws-helm-kubectl
+  stage: deploy app
+  before_script:
+    - export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+    - export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+    - export AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+  script:
+    - cd .kubernetes
+    - sed -i 's/<VERSION>/'${CI_COMMIT_SHORT_SHA}'/g' deployment.yaml
+    - kubectl --kubeconfig ${KUBECONFIG} apply -f deployment.yaml
+    - kubectl --kubeconfig ${KUBECONFIG} rollout status deployments

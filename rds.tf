@@ -59,8 +59,23 @@ resource "aws_db_instance" "main" {
   tags = {
     name = "RDS_Laravel"
   }
+  vpc_security_group_ids = [aws_security_group.rds-sg.id]
+  
   publicly_accessible          = "false"
   multi_az                     = var.multi_az
   skip_final_snapshot          = true
   performance_insights_enabled = false
+}
+
+resource "aws_security_group" "rds-sg" {
+  name        = "rds-sg"
+  description = "Security group for RDS"
+  
+  ingress {
+    description = "MySQL access"
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
+    security_groups = aws_security_group.demo-cluster.id
+  }
 }
