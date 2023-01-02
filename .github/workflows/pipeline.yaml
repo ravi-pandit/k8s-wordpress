@@ -39,11 +39,10 @@ jobs:
           IMAGE_REPO=wordpress
           IMAGE_TAG=php8.2-fpm
 
-          # Build the Docker image
-          docker build -t $IMAGE_REPO:$IMAGE_TAG .
-
-          # Push the image to a registry
-          docker push $IMAGE_REPO:$IMAGE_TAG
+        # # Build the Docker image
+        # docker build -t $IMAGE_REPO:$IMAGE_TAG .
+        # # Push the image to a registry
+        # docker push $IMAGE_REPO:$IMAGE_TAG
 
       # Deploy the application to EKS
       - name: Deploy to EKS
