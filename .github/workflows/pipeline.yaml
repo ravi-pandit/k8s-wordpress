@@ -30,7 +30,7 @@ jobs:
       # Set up the kubeconfig file
       - name: Set up kubeconfig
         run: |
-          aws eks update-kubeconfig --name eks-demo
+          aws eks update-kubeconfig --region ap-south-1 --name eks-demo
           
       # Build and push the Docker image
       - name: Build and push image
