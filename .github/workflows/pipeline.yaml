@@ -53,6 +53,7 @@ jobs:
           DEPLOYMENT_NAME=wordpress-site
 
           # Set the current context to the EKS cluster
+          kubectl config get-contexts  
           kubectl config use-context $CLUSTER_NAME
 
           # Update the deployment with the new image
