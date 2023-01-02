@@ -54,7 +54,7 @@ jobs:
 
           # Set the current context to the EKS cluster
           kubectl config get-contexts  
-        # kubectl config use-context $CLUSTER_NAME
+          # kubectl config use-context $CLUSTER_NAME
 
           # Update the deployment with the new image
           kubectl set image deployment/$DEPLOYMENT_NAME app=$IMAGE_REPO:$IMAGE_TAG --namespace=$NAMESPACE
