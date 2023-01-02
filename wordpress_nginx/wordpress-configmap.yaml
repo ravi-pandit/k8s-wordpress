@@ -10,10 +10,10 @@ data:
   WP_DEBUG_DISPLAY: "false"
   WP_CACHE: "true"
   # Database configuration options
-  WORDPRESS_DB_NAME: wordpress
+  WORDPRESS_DB_NAME: terraform_laravelk8s
   WORDPRESS_DB_USER: admin
-  WORDPRESS_DB_PASSWORD: R647Ie1hL63X
-  WORDPRESS_DB_HOST: test-wordpress.c685olbnapdz.ap-south-1.rds.amazonaws.com:3306
+  WORDPRESS_DB_PASSWORD: VdBDjNB!9z%i4e2n
+  WORDPRESS_DB_HOST: terraform-laravelk8s-1.c685olbnapdz.ap-south-1.rds.amazonaws.com:3306
   WORDPRESS_DB_CHARSET: utf8mb4
   WORDPRESS_DB_COLLATE: ""
 

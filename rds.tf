@@ -70,12 +70,15 @@ resource "aws_db_instance" "main" {
 resource "aws_security_group" "rds-sg" {
   name        = "rds-sg"
   description = "Security group for RDS"
+  vpc_id = "${aws_vpc.demo_vpc.id}"
   
   ingress {
     description = "MySQL access"
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    security_groups = aws_security_group.demo-cluster.id
+    security_groups = ["${aws_security_group.demo-cluster.id}"]
+    
   }
+  depends_on = [aws_security_group.demo-cluster]
 }

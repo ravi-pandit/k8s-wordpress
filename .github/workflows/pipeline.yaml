@@ -36,8 +36,8 @@ jobs:
       - name: Build and push image
         run: |
           # Replace these values with your own
-          IMAGE_REPO=rrpnarola/wordpress
-          IMAGE_TAG=php7.4-fpm
+          IMAGE_REPO=wordpress
+          IMAGE_TAG=php8.2-fpm
 
           # Build the Docker image
           docker build -t $IMAGE_REPO:$IMAGE_TAG .
@@ -57,4 +57,4 @@ jobs:
           kubectl config use-context $CLUSTER_NAME
 
           # Update the deployment with the new image
-          kubectl set image deployment/$DEPLOYMENT_NAME my-app=$IMAGE_REPO:$IMAGE_TAG --namespace=$NAMESPACE
+          kubectl set image deployment/$DEPLOYMENT_NAME app=$IMAGE_REPO:$IMAGE_TAG --namespace=$NAMESPACE
