@@ -48,6 +48,8 @@ jobs:
       - name: Deploy to EKS
         run: |
           # Replace these values with your own
+          IMAGE_REPO=wordpress
+          IMAGE_TAG=php7.4-fpm
           CLUSTER_NAME=eks-demo
           NAMESPACE=development
           DEPLOYMENT_NAME=wordpress-site
@@ -55,13 +57,13 @@ jobs:
           echo "$DEPLOYMENT_NAME"
           echo "$CLUSTER_NAME"
           echo "$NAMESPACE"
-          
+
           # Set the current context to the EKS cluster
           kubectl config get-contexts  
           # kubectl config use-context $CLUSTER_NAME
 
           # Update the deployment with the new image
-          #kubectl set image deployment/$DEPLOYMENT_NAME app=$IMAGE_REPO:$IMAGE_TAG --namespace=$NAMESPACE
-          kubectl set image deployment/wordpress-site app=wordpress:php8.1-fpm --namespace=development
+          kubectl set image deployment/$DEPLOYMENT_NAME app=$IMAGE_REPO:$IMAGE_TAG --namespace=$NAMESPACE
+          #kubectl set image deployment/wordpress-site app=wordpress:php8.1-fpm --namespace=development
 
           #kubectl set image deployment/wordpress-site rrpnarola/wordpress:php7.4-fpm --namespace=development
