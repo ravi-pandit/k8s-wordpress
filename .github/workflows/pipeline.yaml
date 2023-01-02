@@ -52,6 +52,10 @@ jobs:
           NAMESPACE=development
           DEPLOYMENT_NAME=wordpress-site
 
+          echo "$DEPLOYMENT_NAME"
+          echo "$CLUSTER_NAME"
+          echo "$NAMESPACE"
+          
           # Set the current context to the EKS cluster
           kubectl config get-contexts  
           # kubectl config use-context $CLUSTER_NAME
