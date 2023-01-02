@@ -18,12 +18,12 @@ jobs:
       # Install kubectl and the AWS IAM Authenticator
       - name: Install kubectl
         run: |
-          curl -o kubectl https://amazon-eks.s3-ap-south-1.amazonaws.com/1.20.8/2022-12-01/bin/linux/amd64/kubectl
+          curl -o kubectl https://amazon-eks.s3-us-west-1.amazonaws.com/1.20.8/2022-12-01/bin/linux/amd64/kubectl
           chmod +x ./kubectl
           mv ./kubectl /usr/local/bin/kubectl
       - name: Install AWS IAM Authenticator
         run: |
-          curl -o aws-iam-authenticator https://amazon-eks.s3-ap-south-1.amazonaws.com/1.20.8/2022-12-01/bin/linux/amd64/aws-iam-authenticator
+          curl -o aws-iam-authenticator https://amazon-eks.s3-us-west-1.amazonaws.com/1.20.8/2022-12-01/bin/linux/amd64/aws-iam-authenticator
           chmod +x ./aws-iam-authenticator
           mv ./aws-iam-authenticator /usr/local/bin/aws-iam-authenticator
 
