@@ -12,7 +12,7 @@ data:
   # Database configuration options
   WORDPRESS_DB_NAME: terraform_laravelk8s
   WORDPRESS_DB_USER: admin
-  WORDPRESS_DB_PASSWORD: VdBDjNB!9z%i4e2n
+  WORDPRESS_DB_PASSWORD: XBoJRJ70h_qK3QPH
   WORDPRESS_DB_HOST: terraform-laravelk8s-1.c685olbnapdz.ap-south-1.rds.amazonaws.com:3306
   WORDPRESS_DB_CHARSET: utf8mb4
   WORDPRESS_DB_COLLATE: ""
@@ -24,5 +24,5 @@ data:
   # WORDPRESS_NONCE_KEY: T[(q>xwTO[};p=[Z=yf?t:DfCl=EQBL[BY2Hs|g6`%qxIo>ARo(9JIL8-$yYw$G,
   # WORDPRESS_AUTH_SALT: o^T~>[hg KD$ K.E@5FD+YVYN0hYN2)E#KTgI.`l}9DCd#Xd a.f]33%2BASn$`n
   # WORDPRESS_SECURE_AUTH_SALT: _p9l$Q5gh>L^TD,)0^;U=03oW%(li5:(i+OX,Fq+l^(dwP6wmVf? S]67:/AGe,)
-  # WORDPRESS_LOGGED_IN_SALT: -rGd6D7K-cpDpNFaQW6c^uw&EQvSLI+ni=y]@i`i{y0#pnT,m_=LCLt8)6=//}+(
+  # WORDPRESS_LOGGED_IN_SALT: "-rGd6D7K-cpDpNFaQW6c^uw&EQvSLI+ni=y]@i`i{y0#pnT,m_=LCLt8)6=//}+("
   # WORDPRESS_NONCE_SALT: {oeyw%H)}gA6ZWUO)^2-f,.hFTrEE-O},{l=x+y0Rlki+&YTZACJ(LF1@VUhU=h 

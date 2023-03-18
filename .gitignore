@@ -36,3 +36,8 @@ terraform.rc
 
 # Ignore temp
 temp/
+wordpress-image/
+robot-shop/
+
+wordpress_nginx/wordpress-bkup-configmap.yaml
+wordpress_nginx/wordpress-bkup-configmap.yaml

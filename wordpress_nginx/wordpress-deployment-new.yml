@@ -35,7 +35,7 @@ spec:
         emptyDir: {}
       containers:
         - name: app
-          image: wordpress:php7.4-fpm
+          image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress:latest
           imagePullPolicy : IfNotPresent
           volumeMounts:
             - name: shared-files

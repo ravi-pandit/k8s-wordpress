@@ -20,6 +20,8 @@ update the OIDC value in Roles > select "AmazonEKSLoadBalancerControllerRole" > 
 # Install certmanager
 kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.10.0/cert-manager.yaml
 
+https://github.com/cert-manager/cert-manager/releases/tag/v1.11.0/cert-manager.yaml
+
 Deploy the AWS Load balancer controller
 kubectl apply -f v2_4_4_full.yaml
 

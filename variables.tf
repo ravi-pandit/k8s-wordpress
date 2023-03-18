@@ -36,3 +36,9 @@ variable "private_subnets_cidr" {
 variable "multi_az" {
   default = false
 }
+
+variable "ecr" {
+ description = "Wordpress Docker Image"
+ type = string
+ default = "wordpress"
+}
