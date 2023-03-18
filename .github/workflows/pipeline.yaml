@@ -32,31 +32,31 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      # Build Image with Tag and Push Image to Amazon ECR
-      - name: Build, tag, and push image to Amazon ECR
-        id: build-image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
-          IMAGE_TAG: ${{ steps.vars.outputs.tag }}
-        run: |
-          # echo "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-          cd fpm 
-          docker build -t 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress:latest .
-          docker push 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress:latest
-          # echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+      # # Build Image with Tag and Push Image to Amazon ECR
+      # - name: Build, tag, and push image to Amazon ECR
+      #   id: build-image
+      #   env:
+      #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      #     ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+      #     IMAGE_TAG: ${{ steps.vars.outputs.tag }}
+      #   run: |
+      #     # echo "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+      #     cd fpm 
+      #     docker build -t 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress:latest .
+      #     docker push 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress:latest
+      #     # echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
-      # Set up the kubeconfig file
-      - name: Set up kubeconfig
-        run: |
-          aws eks update-kubeconfig --region ap-south-1 --name eks-demo
+      # # Set up the kubeconfig file
+      # - name: Set up kubeconfig
+      #   run: |
+      #     aws eks update-kubeconfig --region ap-south-1 --name eks-demo
           
-      # Build and push the Docker image
-      - name: Build and push image
-        run: |
-          # Replace these values with your own
-          IMAGE_REPO=187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress
-          IMAGE_TAG=latest
+      # # Build and push the Docker image
+      # - name: Build and push image
+      #   run: |
+      #     # Replace these values with your own
+      #     IMAGE_REPO=187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress
+      #     IMAGE_TAG=latest
 
         # # Build the Docker image
         # docker build -t $IMAGE_REPO:$IMAGE_TAG .
