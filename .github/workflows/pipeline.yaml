@@ -46,10 +46,10 @@ jobs:
       #     docker push 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress:latest
       #     # echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
-      # # Set up the kubeconfig file
-      # - name: Set up kubeconfig
-      #   run: |
-      #     aws eks update-kubeconfig --region ap-south-1 --name eks-demo
+      # Set up the kubeconfig file
+      - name: Set up kubeconfig
+        run: |
+          aws eks update-kubeconfig --region ap-south-1 --name eks-demo
           
       # # Build and push the Docker image
       # - name: Build and push image
