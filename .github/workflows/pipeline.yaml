@@ -41,6 +41,7 @@ jobs:
           IMAGE_TAG: ${{ steps.vars.outputs.tag }}
         run: |
           # echo "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          cd fpm 
           docker build -t 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress:latest .
           docker push 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress:latest
           # echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
