@@ -1,5 +1,11 @@
 name: Deploy to EKS
-on: [push]
+on:
+  push:
+    branches: [ main ]
+
+env:
+  ECR_REGISTRY: 187451058634.dkr.ecr.ap-south-1.amazonaws.com
+  ECR_REPOSITORY: wordpress
 
 jobs:
   build-and-deploy:
@@ -27,10 +33,29 @@ jobs:
           chmod +x ./aws-iam-authenticator
           mv ./aws-iam-authenticator /usr/local/bin/aws-iam-authenticator
       
-      # login to Amazon ECR
-      - name: Login to Amazon ECR
+      # Login into AWS ECR
+      - name: Login to AWS ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
+        with:
+          registry: ${{ env.ECR_REGISTRY }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # Build docker image
+      - name: Build Docker image
+        id: build-image
+        run: |
+          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }} .
+          docker tag ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }} ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
+
+      # Push docker image
+      - name: Push Docker image to ECR
+        id: push-image
+        run: |
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
 
       # # Build Image with Tag and Push Image to Amazon ECR
       # - name: Build, tag, and push image to Amazon ECR
@@ -68,7 +93,7 @@ jobs:
         run: |
           # Replace these values with your own
           IMAGE_REPO=187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress
-          IMAGE_TAG=latest
+          IMAGE_TAG=${{ github.sha }}
           CLUSTER_NAME=eks-demo
           NAMESPACE=development
           DEPLOYMENT_NAME=wordpress-site
@@ -79,10 +104,11 @@ jobs:
 
           # Set the current context to the EKS cluster
           kubectl config get-contexts  
+
           # kubectl config use-context $CLUSTER_NAME
-
           # Update the deployment with the new image
-          kubectl set image deployment/$DEPLOYMENT_NAME app=$IMAGE_REPO:$IMAGE_TAG --namespace=$NAMESPACE
-          #kubectl set image deployment/wordpress-site app=wordpress:php8.1-fpm --namespace=development
 
+          kubectl set image deployment/$DEPLOYMENT_NAME app=$IMAGE_REPO:$IMAGE_TAG --namespace=$NAMESPACE
+          
+          #kubectl set image deployment/wordpress-site app=wordpress:php8.1-fpm --namespace=development
           #kubectl set image deployment/wordpress-site rrpnarola/wordpress:php7.4-fpm --namespace=development

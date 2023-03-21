@@ -12,7 +12,7 @@ data:
   # Database configuration options
   WORDPRESS_DB_NAME: terraform_laravelk8s
   WORDPRESS_DB_USER: admin
-  WORDPRESS_DB_PASSWORD: XBoJRJ70h_qK3QPH
+  WORDPRESS_DB_PASSWORD: J9jTiXXeoUjli77a
   WORDPRESS_DB_HOST: terraform-laravelk8s-1.c685olbnapdz.ap-south-1.rds.amazonaws.com:3306
   WORDPRESS_DB_CHARSET: utf8mb4
   WORDPRESS_DB_COLLATE: ""

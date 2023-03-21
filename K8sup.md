@@ -14,7 +14,8 @@ Update the kubernetes context:-
 - aws eks update-kubeconfig --region ap-south-1 --name eks-demo
 
 Get OIDC and Update trust policy 
-aws eks describe-cluster --name eks-demo --query "cluster.identity.oidc.issuer" --output text
+- aws eks describe-cluster --name eks-demo --query "cluster.identity.oidc.issuer" --output text
+
 update the OIDC value in Roles > select "AmazonEKSLoadBalancerControllerRole" > Trust relationships > update the OIDC Unique Number.
 
 # Install certmanager
@@ -23,6 +24,8 @@ kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/
 https://github.com/cert-manager/cert-manager/releases/tag/v1.11.0/cert-manager.yaml
 
 Deploy the AWS Load balancer controller
-kubectl apply -f v2_4_4_full.yaml
+1234567
 
 Now deploy all Kubernetes config files.
+
+
