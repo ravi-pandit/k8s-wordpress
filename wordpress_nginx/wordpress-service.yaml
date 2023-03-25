@@ -5,7 +5,8 @@ metadata:
     app: wordpress-site
   name: wordpress-site
   namespace: development
-  # annotations:
+  annotations:
+    alb.ingress.kubernetes.io/healthcheck-path: /wp-admin/install.php
   #   service.beta.kubernetes.io/ingress.class: alb
   #   #service.beta.kubernetes.io/aws-load-balancer-type: external
   #   #service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
@@ -17,9 +18,9 @@ spec:
     protocol: TCP
     targetPort: 80
   - name: https
-    port: 9000
+    port: 443
     protocol: TCP
-    targetPort: 9000
+    targetPort: 443
   selector:
     app: wordpress-site
     tier: frontend

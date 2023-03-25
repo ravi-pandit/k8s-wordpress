@@ -26,29 +26,37 @@ spec:
         tier: frontend
     spec:
       volumes:
-      - configMap:
-          defaultMode: 256
-          name: nginxthroughpass
-          optional: false
-        name: nginxconf
-      - name: shared-files
-        emptyDir: {}
+      - name: gp2
+        persistentVolumeClaim:
+          claimName: wordpress-with-pvc
+      # volumes:
+      # - configMap:
+      #     defaultMode: 256
+      #     name: nginxthroughpass
+      #     optional: false
+      #   name: nginxconf
+      # - name: shared-files
+      #   emptyDir: {}
       containers:
         - name: app
           image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress:latest
           imagePullPolicy : IfNotPresent
-          volumeMounts:
-            - name: shared-files
-              mountPath: /var/www/html
+          # volumeMounts:
+          #   - name: shared-files
+          #     mountPath: /var/www/html
           envFrom:
             - configMapRef:
                 name: wordpress-configmap
+          volumeMounts:
+            - mountPath: /var/www/html
+              name: gp2
+                
         - name: nginx
           image: nginx
           imagePullPolicy : IfNotPresent
-          volumeMounts:
-          - name: shared-files
-            mountPath: /var/www/html
-          - mountPath: /etc/nginx/conf.d
-            name: nginxconf
-            readOnly: true
+          # volumeMounts:
+          # - name: shared-files
+          #   mountPath: /var/www/html
+          # - mountPath: /etc/nginx/conf.d
+          #   name: nginxconf
+          #   readOnly: true
