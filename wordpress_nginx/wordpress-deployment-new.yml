@@ -4,6 +4,8 @@ metadata:
   labels:
     app: wordpress-site
   name: wordpress-site
+  annotations:
+    kubernetes.io/change-cause: ${CHANGE_CAUSE}
   namespace: development
 spec:
   progressDeadlineSeconds: 1200
@@ -35,7 +37,7 @@ spec:
         emptyDir: {}
       containers:
         - name: app
-          image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress:latest
+          image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress:${IMAGE_TAG}
           imagePullPolicy : IfNotPresent
           volumeMounts:
             - name: shared-files
