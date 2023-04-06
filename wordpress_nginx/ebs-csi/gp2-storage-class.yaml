@@ -1,13 +1,13 @@
 kind: StorageClass
 apiVersion: storage.k8s.io/v1
 metadata:
-  name: gp2
+  name: ebs-sc
   annotations: 
     storageclass.kubernetes.io/is-default-class: 'true'
 provisioner: kubernetes.io/aws-ebs
 parameters:
   type: gp2
-  encrypted: "true"
+  # encrypted: "true"
   zones: ap-south-2a, ap-south-2b, ap-south-2c
 reclaimPolicy: Delete
 mountOptions:

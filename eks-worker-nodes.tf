@@ -14,7 +14,7 @@ resource "aws_iam_role" "demo-node" {
     {
       "Effect": "Allow",
       "Principal": {
-        "Service": "ec2.amazonaws.com"
+        "Service": ["ec2.amazonaws.com", "ebs.amazonaws.com"]
       },
       "Action": "sts:AssumeRole"
     }
@@ -38,12 +38,29 @@ resource "aws_iam_role_policy_attachment" "demo-node-AmazonEC2ContainerRegistryR
   role       = aws_iam_role.demo-node.name
 }
 
+resource "aws_security_group" "demo-worker-sg" {
+  name        = "terraform-eks-demo-worker"
+  description = "Worker communication with internete"
+  vpc_id      = aws_vpc.demo_vpc.id
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "terraform-eks-worker-sg"
+  }
+}
+
 resource "aws_eks_node_group" "demo" {
   cluster_name    = aws_eks_cluster.demo.name
   node_group_name = "demo"
   node_role_arn   = aws_iam_role.demo-node.arn
   subnet_ids      = aws_subnet.demo_subnet[*].id
-  instance_types  = ["t2.small"]
+  instance_types  = ["t3a.medium"]
   version         = 1.24
 
   scaling_config {

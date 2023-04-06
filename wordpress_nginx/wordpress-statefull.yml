@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   labels:
     app: wordpress-site
@@ -29,7 +29,7 @@ spec:
       # volumes:
       - name: persistent-storage
         persistentVolumeClaim:
-          claimName: ebs-claim
+          claimName: pvc-csi
       # volumes:
       # - name: mysql-persistent-storage
       #   persistentVolumeClaim:
@@ -61,9 +61,9 @@ spec:
         - name: nginx
           image: nginx
           imagePullPolicy : IfNotPresent
-          # volumeMounts:
-          # - name: shared-files
-          #   mountPath: /var/www/html
-          # - mountPath: /etc/nginx/conf.d
-          #   name: nginxconf
-          #   readOnly: true
+          volumeMounts:
+          - name: shared-files
+            mountPath: /var/www/html
+          - mountPath: /etc/nginx/conf.d
+            name: nginxconf
+            readOnly: true

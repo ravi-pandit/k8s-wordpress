@@ -77,8 +77,8 @@ resource "aws_security_group" "rds-sg" {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    security_groups = ["${aws_security_group.demo-cluster.id}"]
+    security_groups = ["${aws_security_group.demo-worker-sg.id}"]
     
   }
-  depends_on = [aws_security_group.demo-cluster]
+  depends_on = [aws_security_group.demo-worker-sg]
 }

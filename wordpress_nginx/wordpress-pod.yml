@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: wordpress-site
+  labels:
+    name: wordpress-site
+  namespace: development
+spec:
+  containers:
+  - name: app
+    image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress:latest
+    volumeMounts:
+    - name: persistent-storage
+      mountPath: /data
+    envFrom:
+    - configMapRef:
+        name: wordpress-configmap
+    resources:
+      limits:
+        memory: "128Mi"
+        cpu: "500m"
+    ports:
+      - containerPort: 80
+  # Nginx configuration
+    
+  volumes:
+  - name: persistent-storage
+    persistentVolumeClaim:
+      claimName: pvc-csi
