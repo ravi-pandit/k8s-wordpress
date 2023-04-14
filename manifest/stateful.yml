@@ -27,7 +27,7 @@ spec:
         emptyDir: {}
       containers:
       - name: wordpress-site
-        image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress:3cbdfc836d4ce3dd2409887b1c6cfb08073a8da4
+        image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress:latest
         # imagePullPolicy : IfNotPresent
         ports:
         - containerPort: 9000
