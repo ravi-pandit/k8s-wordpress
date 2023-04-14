@@ -1,0 +1,60 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: wordpress-site
+  namespace: development
+spec:
+  serviceName: "wordpress-site"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wordpress-site
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        app: wordpress-site
+        tier: frontend
+    spec:
+      volumes:
+      - configMap:
+          defaultMode: 256
+          name: nginxthroughpass
+          optional: false
+        name: nginxconf
+      - name: wordpress-with-pvc
+        emptyDir: {}
+      containers:
+      - name: wordpress-site
+        image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress:3cbdfc836d4ce3dd2409887b1c6cfb08073a8da4
+        # imagePullPolicy : IfNotPresent
+        ports:
+        - containerPort: 9000
+          name: wordpress-site
+        volumeMounts:
+        - name: wordpress-with-pvc
+          mountPath: /var/www/html
+        envFrom:
+            - configMapRef:
+                name: wordpress-configmap
+            # - configMapRef:
+            #       name: nginxthroughpass
+      # Nginx application
+      - name: nginx
+        image: nginx
+        imagePullPolicy : IfNotPresent
+        volumeMounts:
+        - name: wordpress-with-pvc
+          mountPath: /var/www/html
+        - mountPath: /etc/nginx/conf.d
+          name: nginxconf
+          readOnly: true
+  volumeClaimTemplates:
+  - metadata:
+      name: wordpress-with-pvc
+    spec:
+      accessModes: [ ReadWriteOnce ]
+      resources:
+        requests:
+          storage: 10Gi
