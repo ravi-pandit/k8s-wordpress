@@ -72,11 +72,29 @@ jobs:
           docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
 
   Set up the kubeconfig file:
-  name: setup kubeconfig
-  steps:
-    # Set up the kubeconfig file
-    - name: Set up kubeconfig
-      run: aws eks update-kubeconfig --region ap-south-1 --name eks-demo
+    name: setup kubeconfig
+    steps:
+      # Set up the kubeconfig file
+      - name: Set up kubeconfig
+        run: aws eks update-kubeconfig --region ap-south-1 --name eks-demo
+
+  Deploy to EKS cluster:
+    name: deploy to eks cluster
+    steps:
+        # Deploy the application to EKS
+      - name: Deploy to EKS
+        run: |
+          IMAGE_REPO=187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress
+          IMAGE_TAG=${{ github.sha }}
+          CLUSTER_NAME=eks-demo
+          NAMESPACE=development
+          DEPLOYMENT_NAME=wordpress-site
+          # Set the current context to the EKS cluster
+          kubectl config get-contexts  
+          # Update Docker image
+          kubectl apply -f manifest/wordpress-deployment-new.yml
+          #image deployment/$DEPLOYMENT_NAME app=$IMAGE_REPO:$IMAGE_TAG --namespace=$NAMESPACE
+
 
   # Update Deployment YAML File:
 
@@ -97,23 +115,16 @@ jobs:
   #       IMAGE_TAG: ${{ github.sha }}
   #       CHANGE_CAUSE: ${{ github.event.release.tag_name }}
     
-  Deploy to EKS cluster:
-  name: deploy to eks cluster
-  steps:
-      # Deploy the application to EKS
-    - name: Deploy to EKS
-      run: |
-        IMAGE_REPO=187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress
-        IMAGE_TAG=${{ github.sha }}
-        CLUSTER_NAME=eks-demo
-        NAMESPACE=development
-        DEPLOYMENT_NAME=wordpress-site
-        
-        # Set the current context to the EKS cluster
-        kubectl config get-contexts  
-
-        # Update Docker image
-        kubectl apply -f manifest/wordpress-deployment-new.yml
-        
-        #image deployment/$DEPLOYMENT_NAME app=$IMAGE_REPO:$IMAGE_TAG --namespace=$NAMESPACE
-        
+#   name: kubeconform
+# on: push
+# jobs:
+#   kubeconform:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: login to Github Packages
+#         run: echo "${{ github.token }}" | docker login https://ghcr.io -u ${GITHUB_ACTOR} --password-stdin
+#       - uses: actions/checkout@v2
+#       - uses: docker://ghcr.io/yannh/kubeconform:master
+#         with:
+#           entrypoint: '/kubeconform'
+#           args: "-summary -output json kubeconfigs/"
