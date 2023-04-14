@@ -6,6 +6,7 @@ on:
 env:
   ECR_REGISTRY: 187451058634.dkr.ecr.ap-south-1.amazonaws.com
   ECR_REPOSITORY: wordpress
+  IMAGE_TAG: $(git rev-parse --short "$GITHUB_SHA")
 
 jobs:
   AWSCLI:
@@ -62,16 +63,15 @@ jobs:
       - name: Set up kubeconfig
         run: aws eks update-kubeconfig --region ap-south-1 --name eks-demo
 
-      # Deploy the application to EKS
+      # Update the image tag in the StatefulSet YAML file
+      - name: Update StatefulSet YAML file
+        run: |
+          sed -i "s|image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:.*|image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}|g" manifest/stateful.yml
+
+      # Apply the updated StatefulSet to the Kubernetes cluster
       - name: Deploy to EKS
         run: |
-          IMAGE_REPO=187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress
-          IMAGE_TAG=${{ github.sha }}
-          CLUSTER_NAME=eks-demo
-          NAMESPACE=development
-          DEPLOYMENT_NAME=wordpress-site
           # Set the current context to the EKS cluster
           kubectl config get-contexts  
-          # Update Docker image
           kubectl apply -f manifest/stateful.yml
           #image deployment/$DEPLOYMENT_NAME app=$IMAGE_REPO:$IMAGE_TAG --namespace=$NAMESPACE
