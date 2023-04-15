@@ -7,6 +7,7 @@ env:
   ECR_REGISTRY: 187451058634.dkr.ecr.ap-south-1.amazonaws.com
   ECR_REPOSITORY: wordpress
   IMAGE_TAG: $(git rev-parse --short "$GITHUB_SHA")
+  CHANGE_CAUSE: ${{ github.event.release.tag_name }}
 
 jobs:
   AWSCLI:
@@ -119,7 +120,8 @@ jobs:
           replacement-method: defined
         env:
           IMAGE_TAG: $VERSION
-          CHANGE_CAUSE: ${{ github.event.release.tag_name }}
+          CHANGE_CAUSE: ${{ env.CHANGE_CAUSE }}
+          #CHANGE_CAUSE: ${{ github.event.release.tag_name }}
 
         
       # - name: Update Kubernetes ConfigMap
