@@ -70,6 +70,8 @@ jobs:
           echo VERSION=$VERSION
           cd wordpress-fpm
           docker build -t $IMAGE_ID:$VERSION .
+          docker tag $IMAGE_ID:$VERSION $IMAGE_ID:latest 
+          #${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }} ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
           docker tag image $IMAGE_ID:$VERSION
           docker push $IMAGE_ID:$VERSION
           echo "::set-output name=version::$VERSION"
