@@ -69,7 +69,7 @@ jobs:
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
           cd wordpress-fpm
-          docker build -t $IMAGE_ID:$VERSION
+          docker build -t $IMAGE_ID:$VERSION .
           docker tag image $IMAGE_ID:$VERSION
           docker push $IMAGE_ID:$VERSION
           echo "::set-output name=version::$VERSION"
