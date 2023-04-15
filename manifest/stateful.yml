@@ -4,6 +4,8 @@ kind: StatefulSet
 metadata:
   name: wordpress-site
   namespace: development
+annotations:
+  kubernetes.io/change-cause: ${CHANGE_CAUSE}
 spec:
   serviceName: "wordpress-site"
   replicas: 1
@@ -27,7 +29,7 @@ spec:
         emptyDir: {}
       containers:
       - name: wordpress-site
-        image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress:latest
+        image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress:${IMAGE_TAG}
         # imagePullPolicy : IfNotPresent
         ports:
         - containerPort: 9000
