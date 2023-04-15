@@ -107,7 +107,7 @@ jobs:
           k8-config-file-paths: manifest/stateful.yml
           replacement-method: defined
         env:
-          IMAGE_TAG: ${VERSION}
+          IMAGE_TAG: $VERSION
           CHANGE_CAUSE: ${{ github.event.release.tag_name }}
         
       # - name: Update Kubernetes ConfigMap

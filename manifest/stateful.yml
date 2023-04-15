@@ -19,6 +19,16 @@ spec:
         app: wordpress-site
         tier: frontend
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: "wordpress-site"
+                    operator: In
+                    values:
+                      - "wordpress-site"
+              topologyKey: "kubernetes.io/hostname"
       volumes:
       - configMap:
           defaultMode: 256
@@ -30,7 +40,7 @@ spec:
       containers:
       - name: wordpress-site
         image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress:${IMAGE_TAG}
-        # imagePullPolicy : IfNotPresent
+        imagePullPolicy: Always
         ports:
         - containerPort: 9000
           name: wordpress-site
