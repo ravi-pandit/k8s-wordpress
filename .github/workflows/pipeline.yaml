@@ -81,16 +81,16 @@ jobs:
         run: aws eks update-kubeconfig --region ap-south-1 --name eks-demo
 
       # Update the image tag in the StatefulSet YAML file
-      - name: Update StatefulSet YAML file
-        uses: fjogeleit/yaml-update-action@main
-        with:
-          valueFile: 'manifest/stateful.yml'
-          propertyPath: 'backend.version'
-          value: ${{ steps.image.outputs.version }}
-          branch: main/${{ steps.image.outputs.version }}
-          targetBranch: main
-          createPR: true
-          message: 'Update Image Version to ${{ steps.image.outputs.version }}'
+      # - name: Update StatefulSet YAML file
+      #   uses: fjogeleit/yaml-update-action@main
+      #   with:
+      #     valueFile: 'manifest/stateful.yml'
+      #     propertyPath: 'backend.version'
+      #     value: ${{ steps.image.outputs.version }}
+      #     branch: main/${{ steps.image.outputs.version }}
+      #     targetBranch: main
+      #     createPR: true
+      #     message: 'Update Image Version to ${{ steps.image.outputs.version }}'
 
       # Apply the updated StatefulSet to the Kubernetes cluster
       - name: Deploy to EKS
@@ -99,3 +99,12 @@ jobs:
           kubectl config get-contexts  
           kubectl apply -f manifest/stateful.yml
           #image deployment/$DEPLOYMENT_NAME app=$IMAGE_REPO:$IMAGE_TAG --namespace=$NAMESPACE
+        
+      - name: Update Kubernetes ConfigMap
+        uses: kj187/git-file-updater-action@v1.0
+        with:
+          github_token: ${{ secrets.TOKEN }}
+          file: manifest/stateful.yml
+          branch: main
+          committer_name: GitHub Actions
+          committer_email: actions@github.com
