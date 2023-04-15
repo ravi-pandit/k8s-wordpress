@@ -4,8 +4,8 @@ kind: StatefulSet
 metadata:
   name: wordpress-site
   namespace: development
-annotations:
-  kubernetes.io/change-cause: ${CHANGE_CAUSE}
+  annotations:
+    kubernetes.io/change-cause: ${CHANGE_CAUSE}
 spec:
   serviceName: "wordpress-site"
   replicas: 1
