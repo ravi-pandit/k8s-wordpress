@@ -100,11 +100,21 @@ jobs:
           kubectl apply -f manifest/stateful.yml
           #image deployment/$DEPLOYMENT_NAME app=$IMAGE_REPO:$IMAGE_TAG --namespace=$NAMESPACE
         
-      - name: Update Kubernetes ConfigMap
-        uses: kj187/git-file-updater-action@v1.0
+      - name: Switch to cluster
+        run: kubectl config use-context
+      - uses: swdotcom/update-and-apply-kubernetes-configs@v1
         with:
-          github_token: ${{ secrets.TOKEN }}
-          file: manifest/stateful.yml
-          branch: main
-          committer_name: GitHub Actions
-          committer_email: actions@github.com
+          k8-config-file-paths: manifest/stateful.yml
+          replacement-method: defined
+        env:
+          IMAGE_TAG: ${VERSION}
+          CHANGE_CAUSE: ${{ github.event.release.tag_name }}
+        
+      # - name: Update Kubernetes ConfigMap
+      #   uses: kj187/git-file-updater-action@v1.0
+      #   with:
+      #     github_token: ${{ secrets.TOKEN }}
+      #     file: manifest/stateful.yml
+      #     branch: main
+      #     committer_name: GitHub Actions
+      #     committer_email: actions@github.com
