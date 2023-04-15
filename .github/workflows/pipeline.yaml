@@ -67,8 +67,10 @@ jobs:
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
           # Use Docker `latest` tag convention
           [ "$VERSION" == "main" ] && VERSION=$(echo ${{ github.sha }} | cut -c1-8)
+          IMAGE_TEMP=$(git rev-parse --short=8 HEAD)
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
+          echo IMAGE_TEMP=$IMAGE_TEMP 
           cd wordpress-fpm
           docker build -t $IMAGE_ID:$VERSION .
           docker tag $IMAGE_ID:$VERSION $IMAGE_ID:latest 
@@ -119,6 +121,7 @@ jobs:
           replacement-method: defined
         env:
           IMAGE_TAG: $(git rev-parse --short=8 HEAD)
+          
           CHANGE_CAUSE: ${{ env.CHANGE_CAUSE }}
           #CHANGE_CAUSE: ${{ github.event.release.tag_name }}
 
