@@ -99,21 +99,20 @@ jobs:
           # Set the current context to the EKS cluster
           kubectl config get-contexts  
           kubectl apply -f manifest/stateful.yml
-          #image deployment/$DEPLOYMENT_NAME app=$IMAGE_REPO:$IMAGE_TAG --namespace=$NAMESPACE
       
       # switch cluster and add file
       - name: Switch to cluster
         run: |
           kubectl config get-contexts
-          IMAGE_ID=${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}
-          # Strip git ref prefix from version
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-          # Strip "v" prefix from tag name
-          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-          # Use Docker `latest` tag convention
-          [ "$VERSION" == "main" ] && VERSION=$(echo ${{ github.sha }} | cut -c1-8)
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
+          # IMAGE_ID=${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}
+          # # Strip git ref prefix from version
+          # VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+          # # Strip "v" prefix from tag name
+          # [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+          # # Use Docker `latest` tag convention
+          # [ "$VERSION" == "main" ] && VERSION=$(echo ${{ github.sha }} | cut -c1-8)
+          # echo IMAGE_ID=$IMAGE_ID
+          # echo VERSION=$VERSION
       - uses: swdotcom/update-and-apply-kubernetes-configs@v1
         with:
           k8-config-file-paths: manifest/stateful.yml
