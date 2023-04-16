@@ -95,12 +95,21 @@ jobs:
       #     createPR: true
       #     message: 'Update Image Version to ${{ steps.image.outputs.version }}'
 
-      # Apply the updated StatefulSet to the Kubernetes cluster
-      - name: Deploy to EKS
+      - name: Update Kubernetes deployment file
         run: |
-          # Set the current context to the EKS cluster
-          kubectl config get-contexts  
-          kubectl apply -f manifest/stateful.yml
+          sed -i 's|image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress::[a-zA-Z0-9]*|image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress::'${{ github.sha }}'|g' manifest/stateful.yml
+
+      - name: Deploy to Kubernetes
+        uses: appleboy/kubectl-action@v1
+        with:
+          args: apply -f manifest/stateful.yml
+
+      # Apply the updated StatefulSet to the Kubernetes cluster
+      # - name: Deploy to EKS
+      #   run: |
+      #     # Set the current context to the EKS cluster
+      #     kubectl config get-contexts  
+      #     kubectl apply -f manifest/stateful.yml
       
       # switch cluster and add file
       - name: Switch to cluster
