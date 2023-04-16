@@ -13,7 +13,7 @@ resource "random_string" "random" {
   #override_special = "_!%^"
 }
 resource "aws_secretsmanager_secret" "password" {
-  name = "terraform-password-${random_string.random.result}"
+  name = "rds_password_${random_string.random.result}"
 }
 
 resource "aws_secretsmanager_secret_version" "password" {
@@ -60,7 +60,7 @@ resource "aws_db_instance" "main" {
     name = "RDS_Laravel"
   }
   vpc_security_group_ids = [aws_security_group.rds-sg.id]
-  
+
   publicly_accessible          = "false"
   multi_az                     = var.multi_az
   skip_final_snapshot          = true
@@ -70,15 +70,15 @@ resource "aws_db_instance" "main" {
 resource "aws_security_group" "rds-sg" {
   name        = "rds-sg"
   description = "Security group for RDS"
-  vpc_id = "${aws_vpc.demo_vpc.id}"
-  
+  vpc_id      = aws_vpc.demo_vpc.id
+
   ingress {
-    description = "MySQL access"
-    from_port   = 3306
-    to_port     = 3306
-    protocol    = "tcp"
+    description     = "MySQL access"
+    from_port       = 3306
+    to_port         = 3306
+    protocol        = "tcp"
     security_groups = ["${aws_security_group.demo-worker-sg.id}"]
-    
+
   }
   depends_on = [aws_security_group.demo-worker-sg]
 }

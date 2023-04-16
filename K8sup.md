@@ -23,6 +23,8 @@ kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/
 
 https://github.com/cert-manager/cert-manager/releases/tag/v1.11.0/cert-manager.yaml
 
+kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v1.5.4/cert-manager.yaml
+
 Deploy the AWS Load balancer controller
 1234567
 

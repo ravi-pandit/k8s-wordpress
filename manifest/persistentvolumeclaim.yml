@@ -4,7 +4,6 @@ metadata:
   name: wordpress-with-pvc
   labels:
     name: wordpress-with-pvc
-
 spec:
   storageClassName: gp2
   accessModes:

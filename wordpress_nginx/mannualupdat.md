@@ -21,3 +21,9 @@ https://gitlab.com/open-source-devex/terraform-modules/kubernetes/eks-cluster-se
 
 
 https://github.com/antonputra/tutorials/tree/main/lessons/133
+
+
+https://aws.amazon.com/blogs/containers/how-to-expose-multiple-applications-on-amazon-eks-using-a-single-application-load-balancer/
+
+
+https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.4/deploy/installation/

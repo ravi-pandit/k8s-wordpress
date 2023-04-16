@@ -38,7 +38,7 @@ variable "multi_az" {
 }
 
 variable "ecr" {
- description = "Wordpress Docker Image"
- type = string
- default = "wordpress"
+  description = "Wordpress Docker Image"
+  type        = string
+  default     = "wordpress"
 }

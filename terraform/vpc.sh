@@ -1,5 +1,5 @@
 #!/bin/bash
-vpc="vpc-057b2643e63ed3c68" 
+vpc="vpc-080a6ed2c04863356" 
 aws ec2 describe-internet-gateways --filters 'Name=attachment.vpc-id,Values='$vpc | grep InternetGatewayId
 aws ec2 describe-subnets --filters 'Name=vpc-id,Values='$vpc | grep SubnetId
 aws ec2 describe-route-tables --filters 'Name=vpc-id,Values='$vpc | grep RouteTableId

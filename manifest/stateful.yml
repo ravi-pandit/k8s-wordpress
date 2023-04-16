@@ -30,35 +30,59 @@ spec:
                       - "wordpress-site"
               topologyKey: "kubernetes.io/hostname"
       volumes:
+      - name: wordpress-secret
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: "aws-secrets-manager"
+        #emptyDir: {}
       - configMap:
           defaultMode: 256
           name: nginxthroughpass
           optional: false
         name: nginxconf
-      - name: wordpress-with-pvc
-        emptyDir: {}
+      # - name: wordpress-with-pvc
+      #   emptyDir: {}
       containers:
       - name: wordpress-site
-        image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress:$(git rev-parse --short=8 HEAD)
+        image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress:56453119
         imagePullPolicy: Always
         ports:
         - containerPort: 9000
           name: wordpress-site
         volumeMounts:
+        # - name: wordpress-with-pvc
+        #   mountPath: /var/www/html
         - name: wordpress-with-pvc
-          mountPath: /var/www/html
+          mountPath: /mnt/secrets-store
+          readOnly: true
         envFrom:
-            - configMapRef:
-                name: wordpress-configmap
-            # - configMapRef:
-            #       name: nginxthroughpass
+          - configMapRef:
+              name: wordpress-configmap
+        # envFrom:
+          - secretRef:
+              name: mysql-credentials
+        # env:
+        # - name: MYSQL_USERNAME
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: mysql-credentials
+        #       key: username
+        # - name: MYSQL_PASSWORD
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: mysql-credentials
+        #       key: password
       # Nginx application
       - name: nginx
         image: nginx
         imagePullPolicy : IfNotPresent
         volumeMounts:
+        # - name: wordpress-with-pvc
+        #   mountPath: /var/www/html
         - name: wordpress-with-pvc
-          mountPath: /var/www/html
+          mountPath: /mnt/secrets-store
         - mountPath: /etc/nginx/conf.d
           name: nginxconf
           readOnly: true
