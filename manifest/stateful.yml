@@ -46,7 +46,7 @@ spec:
       #   emptyDir: {}
       containers:
       - name: wordpress-site
-        image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress:${{ env.$commitTag }}
+        image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress:
         imagePullPolicy: Always
         ports:
         - containerPort: 9000
