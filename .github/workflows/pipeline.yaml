@@ -11,6 +11,7 @@ env:
   IMAGE_TAG: $(git rev-parse --short "$GITHUB_SHA")
   CHANGE_CAUSE: ${{ github.event.release.tag_name }}
   AWS_DEFAULT_OUTPUT: json
+  commitTag: ${{ github.sha }}
 
 jobs:
   AWSCLI:
