@@ -136,7 +136,7 @@ jobs:
 
       # Step 2: Get the latest commit id
       - name: Get Latest Commit ID
-        run: echo "::set-output name=commit_id::$(git rev-parse --short=8 HEAD)"
+        run: echo "::set-output name=commit_id::$(git rev-parse --short HEAD)"
 
       # Step 3: Set the $commitTag variable with the latest commit id
       - name: Set commitTag variable
