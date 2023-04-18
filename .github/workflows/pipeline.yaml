@@ -67,10 +67,10 @@ jobs:
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
           # Use Docker `latest` tag convention
           [ "$VERSION" == "main" ] && VERSION=$(echo ${{ github.sha }} | cut -c1-8)
-          IMAGE_TEMP=${(git rev-parse --short=8 HEAD)}
+          # IMAGE_TEMP=${(git rev-parse --short=8 HEAD)}
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
-          echo IMAGE_TEMP=$IMAGE_TEMP 
+          # echo IMAGE_TEMP=$IMAGE_TEMP 
           cd wordpress-fpm
           docker build -t $IMAGE_ID:$VERSION .
           docker tag $IMAGE_ID:$VERSION $IMAGE_ID:latest 
@@ -136,7 +136,7 @@ jobs:
 
       # Step 2: Get the latest commit id
       - name: Get Latest Commit ID
-        run: echo "::set-output name=commit_id::$(git rev-parse --short HEAD)"
+        run: echo "::set-output name=commit_id::$(git rev-parse --short=8 HEAD)"
 
       # Step 3: Set the $commitTag variable with the latest commit id
       - name: Set commitTag variable
