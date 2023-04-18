@@ -72,7 +72,7 @@ jobs:
 
       # Get the latest commit id
       - name: Get Latest Commit ID
-        run: echo "::set-output name=commit_id::$(git rev-parse --short HEAD)"
+        run: echo "::set-output name=commit_id::$(${{ github.sha }} | cut -c1-7)"
 
       # Update the Kubernetes YAML file with the latest commit id
       - name: Update Kubernetes manifest YAML
