@@ -87,7 +87,7 @@ jobs:
       - name: Update Kubernetes manifest YAML
         run: |
           echo "$commitTag"
-          sed -i "s/image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com\/wordpress:.*/image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com\/wordpress:${{ env.commitTag }}/" manifest/stateful.yml
+          sed -i 's/image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com\/wordpress:.*/image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com\/wordpress:'"${commitTag}"'/' manifest/stateful.yml
           git add manifest/stateful.yml
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
