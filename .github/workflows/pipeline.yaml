@@ -83,6 +83,10 @@ jobs:
           echo "commitTag=${{ steps.get-commit-id.outputs.commit_id }}" >> $GITHUB_ENV
           echo "$commitTag"
 
+      # Print commitTag value
+      - name: print value
+        run: echo "$commitTag"
+
       # Update the Kubernetes YAML file with the latest commit id
       - name: Update Kubernetes manifest YAML
         run: |
