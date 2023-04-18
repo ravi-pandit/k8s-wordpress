@@ -78,19 +78,19 @@ jobs:
         run: echo "::set-output name=commit_id::$(git rev-parse --short HEAD)"
 
       # Set the $commitTag variable with the latest commit id
-      - name: Set commitTag variable
-        run: |
-          echo "commitTag=${{ steps.get-commit-id.outputs.commit_id }}" >> $GITHUB_ENV
-          echo "$commitTag"
+      # - name: Set commitTag variable
+      #   run: |
+      #     echo "commitTag=${{ steps.get-commit-id.outputs.commit_id }}" >> $GITHUB_ENV
+      #     echo "$commitTag"
 
-      # Print commitTag value
-      - name: print value
-        run: echo "$commitTag"
+      # # Print commitTag value
+      # - name: print value
+      #   run: echo "$commitTag"
 
       # Update the Kubernetes YAML file with the latest commit id
       - name: Update Kubernetes manifest YAML
         run: |
-          echo "$commitTag"
+          echo "commitTag=${{ steps.get-commit-id.outputs.commit_id }}" >> $GITHUB_ENV
           sed -i 's/image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com\/wordpress:.*/image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com\/wordpress:'"${commitTag}"'/' manifest/stateful.yml
           git add manifest/stateful.yml
           git config --local user.email "action@github.com"
