@@ -11,7 +11,7 @@ env:
   IMAGE_TAG: $(git rev-parse --short "$GITHUB_SHA")
   CHANGE_CAUSE: ${{ github.event.release.tag_name }}
   AWS_DEFAULT_OUTPUT: json
-  commitTag: ${{ github.sha }}
+  #commitTag: ${{ github.sha }}
 
 jobs:
   AWSCLI:
@@ -71,14 +71,15 @@ jobs:
         run: aws eks update-kubeconfig --region ap-south-1 --name eks-demo
 
       # Get the latest commit id
-      - name: Get Latest Commit ID
-        run: echo "::set-output name=commit_id::${{ github.sha }}"
+      # - name: Get Latest Commit ID
+      #   run: echo "::set-output name=commit_id::${{ github.sha }}"
 
       # Update the Kubernetes YAML file with the latest commit id
       - name: Update Kubernetes manifest YAML
         run: |
-          echo "commitTag=${{ steps.get-commit-id.outputs.commit_id }}" >> $GITHUB_ENV
-          sed -i 's/image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com\/wordpress:.*/image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com\/wordpress:'"${commitTag}"'/' manifest/stateful.yml
+          # echo "commitTag=${{ steps.get-commit-id.outputs.commit_id }}" >> $GITHUB_ENV
+          # echo "$commitTag"
+          sed -i 's/image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com\/wordpress:.*/image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com\/wordpress:'"$(git rev-parse --short "$GITHUB_SHA")"'/' manifest/stateful.yml
           git add manifest/stateful.yml
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
