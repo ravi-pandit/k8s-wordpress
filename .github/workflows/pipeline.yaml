@@ -22,7 +22,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-south-1
+          aws-region: ${{ secrets.AWS_REGION}}
 
       - name: Install kubectl
         run: |
@@ -67,7 +67,7 @@ jobs:
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
           # Use Docker `latest` tag convention
           [ "$VERSION" == "main" ] && VERSION=$(echo ${{ github.sha }} | cut -c1-8)
-          IMAGE_TEMP=$(git rev-parse --short=8 HEAD)
+          IMAGE_TEMP=${(git rev-parse --short=8 HEAD)}
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
           echo IMAGE_TEMP=$IMAGE_TEMP 
@@ -95,9 +95,9 @@ jobs:
       #     createPR: true
       #     message: 'Update Image Version to ${{ steps.image.outputs.version }}'
 
-      - name: Update Kubernetes deployment file
-        run: |
-          sed -i 's|image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress::[a-zA-Z0-9]*|image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress::'${{ github.sha }}'|g' manifest/stateful.yml
+      # - name: Update Kubernetes deployment file
+      #   run: |
+      #     sed -i 's|image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress::[a-zA-Z0-9]*|image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress::'${(git rev-parse --short=8 HEAD)}'|g' manifest/stateful.yml
 
       # - name: Deploy to Kubernetes
       #   uses: appleboy/kubectl-action@v1
@@ -112,16 +112,16 @@ jobs:
       #     kubectl apply -f manifest/stateful.yml
       
       # switch cluster and add file
-      - name: Switch to cluster
-        run: |
-          kubectl config get-contexts
-      - uses: swdotcom/update-and-apply-kubernetes-configs@v1
-        with:
-          k8-config-file-paths: manifest/stateful.yml
-          replacement-method: defined
-        env:
-          IMAGE_TAG: $(git rev-parse --short=8 HEAD)
-          CHANGE_CAUSE: ${{ env.CHANGE_CAUSE }}
+      # - name: Switch to cluster
+      #   run: |
+      #     kubectl config get-contexts
+      # - uses: swdotcom/update-and-apply-kubernetes-configs@v1
+      #   with:
+      #     k8-config-file-paths: manifest/stateful.yml
+      #     replacement-method: defined
+      #   env:
+      #     IMAGE_TAG: $(git rev-parse --short=8 HEAD)
+      #     CHANGE_CAUSE: ${{ env.CHANGE_CAUSE }}
           #CHANGE_CAUSE: ${{ github.event.release.tag_name }}
 
         
@@ -133,3 +133,29 @@ jobs:
       #     branch: main
       #     committer_name: GitHub Actions
       #     committer_email: actions@github.com
+
+      # Step 2: Get the latest commit id
+      - name: Get Latest Commit ID
+        run: echo "::set-output name=commit_id::$(git rev-parse --short HEAD)"
+
+      # Step 3: Set the $commitTag variable with the latest commit id
+      - name: Set commitTag variable
+        run: echo "commitTag=${{ steps.get-commit-id.outputs.commit_id }}" >> $GITHUB_ENV
+
+      # Step 4: Update the Kubernetes YAML file with the latest commit id
+      - name: Update Kubernetes YAML
+        run: |
+          sed -i "s/image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com\/wordpress:.*/image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com\/wordpress:${{ env.commitTag }}/" manifest/stateful.yml
+          git add manifest/stateful.yml
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit -m "Update container image tag to latest commit id" -a
+          echo "::set-output name=commit_hash::$(git rev-parse HEAD)"
+
+      # Step 5: Push the changes to the remote repository (only if changes were not made by this action)
+      - name: Push Changes to Remote Repository
+        if: ${{ github.actor != 'github-actions[bot]' }}
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: main
