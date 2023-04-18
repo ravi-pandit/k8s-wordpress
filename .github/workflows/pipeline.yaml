@@ -59,7 +59,7 @@ jobs:
           # Strip "v" prefix from tag name
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
           # Use Docker `latest` tag convention
-          [ "$VERSION" == "main" ] && VERSION=$(echo ${{ github.sha }} | cut -c1-8)
+          [ "$VERSION" == "main" ] && VERSION=$(echo ${{ github.sha }} | cut -c1-7)
           cd wordpress-fpm
           docker build -t $IMAGE_ID:$VERSION .
           docker tag $IMAGE_ID:$VERSION $IMAGE_ID:latest
@@ -72,7 +72,7 @@ jobs:
 
       # Get the latest commit id
       - name: Get Latest Commit ID
-        run: echo "::set-output name=commit_id::$(git rev-parse --short=8 HEAD)"
+        run: echo "::set-output name=commit_id::$(git rev-parse --short HEAD)"
 
       # Update the Kubernetes YAML file with the latest commit id
       - name: Update Kubernetes manifest YAML
@@ -83,7 +83,7 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git commit -m "Update container image tag to latest commit id" -a
-          echo "::set-output name=commit_hash::$(git rev-parse HEAD)"
+          echo "::set-output name=commit_hash::$(git rev-parse --short HEAD)"
 
       # Push the changes to the remote repository (only if changes were not made by this action)
       - name: Push Changes to Remote Repository
