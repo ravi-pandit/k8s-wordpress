@@ -143,7 +143,7 @@ jobs:
         run: echo "commitTag=${{ steps.get-commit-id.outputs.commit_id }}" >> $GITHUB_ENV
 
       # Step 4: Update the Kubernetes YAML file with the latest commit id
-      - name: Update Kubernetes YAML
+      - name: Update Kubernetes manifest YAML
         run: |
           sed -i "s/image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com\/wordpress:.*/image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com\/wordpress:${{ env.commitTag }}/" manifest/stateful.yml
           git add manifest/stateful.yml
