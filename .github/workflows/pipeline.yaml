@@ -8,7 +8,7 @@ env:
   ECR_REPOSITORY: wordpress
   IMAGE_TAG: $(git rev-parse --short "$GITHUB_SHA")
   CHANGE_CAUSE: ${{ github.event.release.tag_name }}
-  commitTag: ${{ steps.get-commit-id.outputs.commit_id }}
+  commitTag: ${{ github.sha }}
 
 jobs:
   AWSCLI:
