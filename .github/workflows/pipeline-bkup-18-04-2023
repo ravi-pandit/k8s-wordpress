@@ -1,0 +1,135 @@
+name: Deploy to EKS
+on:
+  push:
+    branches: [ main ]
+
+env:
+  ECR_REGISTRY: 187451058634.dkr.ecr.ap-south-1.amazonaws.com
+  ECR_REPOSITORY: wordpress
+  IMAGE_TAG: $(git rev-parse --short "$GITHUB_SHA")
+  CHANGE_CAUSE: ${{ github.event.release.tag_name }}
+
+jobs:
+  AWSCLI:
+    name: awscli
+    runs-on: ubuntu-latest
+    steps:
+      # Check out the code
+      - uses: actions/checkout@v3
+
+      # Set up the AWS CLI
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION}}
+
+      - name: Install kubectl
+        run: |
+          curl -LO https://dl.k8s.io/release/v1.23.0/bin/linux/amd64/kubectl
+          chmod +x ./kubectl
+          mv ./kubectl /usr/local/bin/kubectl
+      - name: Install AWS IAM Authenticator
+        run: |
+          curl -o aws-iam-authenticator https://amazon-eks.s3-us-west-1.amazonaws.com/1.20.8/2022-12-01/bin/linux/amd64/aws-iam-authenticator
+          chmod +x ./aws-iam-authenticator
+          mv ./aws-iam-authenticator /usr/local/bin/aws-iam-authenticator
+
+      # Login into AWS ECR
+      - name: Login to AWS ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          registry: ${{ env.ECR_REGISTRY }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # Build docker image
+      # - name: Build Docker image
+      #   id: build-image
+      #   run: |
+      #     cd wordpress-fpm
+      #     docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }} .
+      #     docker tag ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }} ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
+      # docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          # docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
+
+
+      # Push docker image
+      - name: Build and Push Docker image to ECR
+        id: build-push-image
+        run: |
+          IMAGE_ID=${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}
+          # Strip git ref prefix from version
+          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+          # Strip "v" prefix from tag name
+          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+          # Use Docker `latest` tag convention
+          [ "$VERSION" == "main" ] && VERSION=$(echo ${{ github.sha }} | cut -c1-8)
+          IMAGE_TEMP=${(git rev-parse --short=8 HEAD)}
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          echo IMAGE_TEMP=$IMAGE_TEMP 
+          cd wordpress-fpm
+          docker build -t $IMAGE_ID:$VERSION .
+          docker tag $IMAGE_ID:$VERSION $IMAGE_ID:latest 
+          #${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }} ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
+          #docker tag image $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
+          echo "::set-output name=version::$VERSION"
+
+      # Set up the kubeconfig file
+      - name: Set up kubeconfig
+        run: aws eks update-kubeconfig --region ap-south-1 --name eks-demo
+
+      # Update the image tag in the StatefulSet YAML file
+      # - name: Update StatefulSet YAML file
+      #   uses: fjogeleit/yaml-update-action@main
+      #   with:
+      #     valueFile: 'manifest/stateful.yml'
+      #     propertyPath: 'backend.version'
+      #     value: ${{ steps.image.outputs.version }}
+      #     branch: main/${{ steps.image.outputs.version }}
+      #     targetBranch: main
+      #     createPR: true
+      #     message: 'Update Image Version to ${{ steps.image.outputs.version }}'
+
+      - name: Update Kubernetes deployment file
+        run: |
+          sed -i 's|image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress::[a-zA-Z0-9]*|image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress::'${(git rev-parse --short=8 HEAD)}'|g' manifest/stateful.yml
+
+      # - name: Deploy to Kubernetes
+      #   uses: appleboy/kubectl-action@v1
+      #   with:
+      #     args: apply -f manifest/stateful.yml
+
+      # Apply the updated StatefulSet to the Kubernetes cluster
+      # - name: Deploy to EKS
+      #   run: |
+      #     # Set the current context to the EKS cluster
+      #     kubectl config get-contexts  
+      #     kubectl apply -f manifest/stateful.yml
+      
+      # switch cluster and add file
+      - name: Switch to cluster
+        run: |
+          kubectl config get-contexts
+      - uses: swdotcom/update-and-apply-kubernetes-configs@v1
+        with:
+          k8-config-file-paths: manifest/stateful.yml
+          replacement-method: defined
+        env:
+          IMAGE_TAG: $(git rev-parse --short=8 HEAD)
+          CHANGE_CAUSE: ${{ env.CHANGE_CAUSE }}
+          #CHANGE_CAUSE: ${{ github.event.release.tag_name }}
+
+        
+      # - name: Update Kubernetes ConfigMap
+      #   uses: kj187/git-file-updater-action@v1.0
+      #   with:
+      #     github_token: ${{ secrets.TOKEN }}
+      #     file: manifest/stateful.yml
+      #     branch: main
+      #     committer_name: GitHub Actions
+      #     committer_email: actions@github.com
