@@ -129,7 +129,8 @@ jobs:
           status: 'success'
           message: 'Deployment to Kubernetes was successful!'
         env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+
       # Notify Slack when build fails
       - name: Notify Slack on Failure
         if: failure()
