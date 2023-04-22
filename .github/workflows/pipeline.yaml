@@ -21,28 +21,6 @@ jobs:
       # Check out the code
       - uses: actions/checkout@v3
 
-      - name: Alcide Advisor Kubernetes Scan
-        # You may pin to the exact commit or the version.
-        # uses: alcideio/advisor-action@846f2b615883d0329628e2a149180af21d6ee8ea
-        uses: alcideio/advisor-action@v1.1.0
-        with:
-          # Namespaces to include in the scan - defaults to all
-          include_namespaces: # optional, default is *
-          # Namespaces to exclude in the scan - defaults to kube-system,istio-system
-          exclude_namespaces: # optional, default is kube-system,istio-system
-          # Scan result file name. You can publish this artifact in a later step.
-          output_file: # optional, default is advisor-scan-result.html
-          # Fail the task if critical findings observed.
-          fail_on_critical: # optional, default is 
-          # Alcide policy profile the cluster will be scanned against.
-          policy_profile: # optional
-          # The profile id with which cluster should be scanned. Note - Alcide Api Key is required to run a scan with customized profile
-          policy_profile_id: # optional
-          # Alcide API Key - to run advisor scan with customized profile an api-key is needed - login to your account to obtain one
-          alcide_apikey: # optional
-          # Alcide API Server - The api server provisioned to your account
-          alcide_apiserver: # optional
-
       # Set up the AWS CLI
       - uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -120,6 +98,7 @@ jobs:
   
   notify: 
     runs-on: ubuntu-latest
+    needs: awscli
     steps:
       # Notify Slack when build is successful
       - name: Notify Slack on Success
