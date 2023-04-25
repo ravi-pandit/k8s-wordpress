@@ -10,7 +10,7 @@ resource "aws_lb_target_group" "wordpress-tg" {
     protocol            = "HTTP"
     timeout             = 5
     unhealthy_threshold = 2
-    path                = "/"
+    path                = "/wp-admin/install.php"
   }
 }
 
