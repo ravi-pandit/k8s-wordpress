@@ -79,7 +79,7 @@ jobs:
             manifest/stateful.yml
           replacement-method: defined
         env:
-          IMAGE_TAG: ${{ (git rev-parse --short "$GITHUB_SHA") }}
+          IMAGE_TAG: ${{ git rev-parse --short "$GITHUB_SHA" }}
           CHANGE_CAUSE: ${{ github.event.release.tag_name }}
 
       # Update the Kubernetes YAML file with the latest commit id
