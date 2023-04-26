@@ -71,22 +71,34 @@ jobs:
         run: aws eks update-kubeconfig --region ap-south-1 --name eks-demo
 
       # Update the Kubernetes YAML file with the latest commit id
-      - name: Update Kubernetes manifest YAML
-        run: |
-          sed -i 's/image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com\/wordpress:.*/image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com\/wordpress:'"$(git rev-parse --short "$GITHUB_SHA")"'/' manifest/stateful.yml
-          git add manifest/stateful.yml
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git commit -m "Update container image tag to latest commit id" -a
-          echo "::set-output name=commit_hash::$(git rev-parse --short HEAD)"
-
-      # Push the changes to the remote repository (only if changes were not made by this action)
-      - name: Push Changes to Remote Repository
-        if: ${{ github.actor != 'github-actions[bot]' }}
-        uses: ad-m/github-push-action@master
+      - name: Check current cluster
+        run: kubectl config current-context
+      - uses: swdotcom/update-and-apply-kubernetes-configs@v1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: main
+          k8-config-file-paths: |
+            manifest/stateful.yml
+          replacement-method: defined
+        env:
+          IMAGE_TAG: $(git rev-parse --short "$GITHUB_SHA")
+          CHANGE_CAUSE: ${{ github.event.release.tag_name }}
+
+      # Update the Kubernetes YAML file with the latest commit id
+      # - name: Update Kubernetes manifest YAML
+      #   run: |
+      #     sed -i 's/image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com\/wordpress:.*/image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com\/wordpress:'"$(git rev-parse --short "$GITHUB_SHA")"'/' manifest/stateful.yml
+      #     git add manifest/stateful.yml
+      #     git config --local user.email "action@github.com"
+      #     git config --local user.name "GitHub Action"
+      #     git commit -m "Update container image tag to latest commit id" -a
+      #     echo "::set-output name=commit_hash::$(git rev-parse --short HEAD)"
+
+      # # Push the changes to the remote repository (only if changes were not made by this action)
+      # - name: Push Changes to Remote Repository
+      #   if: ${{ github.actor != 'github-actions[bot]' }}
+      #   uses: ad-m/github-push-action@master
+      #   with:
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     branch: main
 
       # Apply the updated StatefulSet to the Kubernetes cluster
       - name: Deploy to EKS
