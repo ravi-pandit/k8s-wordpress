@@ -80,7 +80,7 @@ jobs:
           replacement-method: defined
         env:
           IMAGE_TAG: ${{ steps.build-push-image.outputs.version }}
-          CHANGE_CAUSE: ${{ github.event.release.tag_name }}
+          CHANGE_CAUSE: ${{ github.ref }}
 
       # Update the Kubernetes YAML file with the latest commit id
       # - name: Update Kubernetes manifest YAML
