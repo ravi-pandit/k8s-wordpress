@@ -31,10 +31,13 @@ jobs:
           output: 'trivy-scan-results.sarif'
           severity: 'CRITICAL'
 
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: 'trivy-scan-results.sarif'
+      # - name: Upload Trivy scan results to GitHub Security tab
+      #   uses: github/codeql-action/upload-sarif@v2
+      #   with:
+      #     sarif_file: 'trivy-scan-results.sarif'
+
+      - name: Show the scan file
+        run: ls ; cat trivy-scan-results.sarif 
 
   Build:
     name: build
@@ -76,10 +79,13 @@ jobs:
           format: 'sarif'
           output: 'trivy-build-results.sarif'
 
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: 'trivy-build-results.sarif'
+      # - name: Upload Trivy scan results to GitHub Security tab
+      #   uses: github/codeql-action/upload-sarif@v2
+      #   with:
+      #     sarif_file: 'trivy-build-results.sarif'
+
+      - name: Show the scan file
+        run: ls ; cat trivy-build-results.sarif 
 
       # Push docker image
       - name: Push Docker image to ECR
@@ -88,9 +94,7 @@ jobs:
           docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:"$(git rev-parse --short "$GITHUB_SHA")"
           VERSION=(git rev-parse --short "$GITHUB_SHA")
           echo "::set-output name=version::$VERSION"
-
         
-
   Deploy:
     name: deploy
     runs-on: ubuntu-latest
