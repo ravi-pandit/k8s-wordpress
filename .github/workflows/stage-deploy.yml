@@ -91,13 +91,13 @@ jobs:
           DOCKER_SHORT_SHA: ${{ env.DOCKER_SHORT_SHA }}
         run: |
           cd wordpress-fpm
-          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:$DOCKER_SHORT_SHA .
+          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }} .
           
       # Scan image for vulnerabilities
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: '${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:$DOCKER_SHORT_SHA'
+          image-ref: '${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}'
           format: 'sarif'
           output: 'trivy-build-results.sarif'
           ignore-unfixed: true
@@ -118,7 +118,7 @@ jobs:
       - name: Push Docker image to ECR
         id: push-image
         run: |
-          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:$DOCKER_SHORT_SHA
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
         
   Deploy:
     name: deploy
@@ -155,7 +155,7 @@ jobs:
             manifest/stateful.yml
           replacement-method: defined
         env:
-          IMAGE_TAG: $DOCKER_SHORT_SHA
+          IMAGE_TAG: ${{ github.sha }}
           CHANGE_CAUSE: ${{ github.ref }}
 
       # Apply the updated StatefulSet to the Kubernetes cluster
