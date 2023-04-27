@@ -8,7 +8,7 @@ on:
 env:
   ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION}}.amazonaws.com
   ECR_REPOSITORY: wordpress
-  DOCKER_SHORT_SHA: ${{ github.sha | truncate(7, '') }}
+  DOCKER_SHORT_SHA: ${{ substr(github.sha, 0, 7) }}
   CHANGE_CAUSE: ${{ github.event.release.tag_name }}
   AWS_DEFAULT_OUTPUT: json
   #commitTag: ${{ github.sha }}
@@ -84,6 +84,8 @@ jobs:
       # Build docker image
       - name: Build Docker image
         id: build-image
+        # env:
+        #   DOCKER_SHORT_SHA: ${{ env.DOCKER_SHORT_SHA:0:7 }} 
         run: |
           cd wordpress-fpm
           docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:$DOCKER_SHORT_SHA .
