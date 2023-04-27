@@ -29,7 +29,11 @@ jobs:
           ignore-unfixed: true
           format: 'sarif'
           output: 'trivy-scan-results.sarif'
-          severity: 'CRITICAL'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+          vuln-type: 'os,library'
+          scanners: 'vuln,secret'
+        
 
       # - name: Upload Trivy scan results to GitHub Security tab
       #   uses: github/codeql-action/upload-sarif@v2
@@ -69,15 +73,20 @@ jobs:
         id: build-image
         run: |
           cd wordpress-fpm
-          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:"$(git rev-parse --short "$GITHUB_SHA")" .
+          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:"$IMAGE_TAG" .
           
       # Scan image for vulnerabilities
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: '${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:"$(git rev-parse --short "$GITHUB_SHA")"'
+          image-ref: '${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:"$IMAGE_TAG"'
           format: 'sarif'
           output: 'trivy-build-results.sarif'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+          vuln-type: 'os,library'
+          scanners: 'vuln,secret'
 
       # - name: Upload Trivy scan results to GitHub Security tab
       #   uses: github/codeql-action/upload-sarif@v2
@@ -91,9 +100,9 @@ jobs:
       - name: Push Docker image to ECR
         id: push-image
         run: |
-          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:"$(git rev-parse --short "$GITHUB_SHA")"
-          VERSION=(git rev-parse --short "$GITHUB_SHA")
-          echo "::set-output name=version::$VERSION"
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:"$IMAGE_TAG"
+          # VERSION=(git rev-parse --short "$GITHUB_SHA")
+          # echo "::set-output name=version::$VERSION"
         
   Deploy:
     name: deploy
@@ -130,7 +139,7 @@ jobs:
             manifest/stateful.yml
           replacement-method: defined
         env:
-          IMAGE_TAG: ${{ steps.push-image.outputs.version }}
+          IMAGE_TAG: ${IMAGE_TAG}
           CHANGE_CAUSE: ${{ github.ref }}
 
       # Apply the updated StatefulSet to the Kubernetes cluster
