@@ -46,7 +46,7 @@ jobs:
       - name: Set Image ID
         id: image
         run: |
-          VERSION=(git rev-parse --short "$GITHUB_SHA")
+          VERSION=('git rev-parse --short "$GITHUB_SHA"')
           echo "::set-output name=version::$VERSION"
           echo "$VERSION"
 
