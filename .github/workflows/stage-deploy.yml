@@ -90,14 +90,21 @@ jobs:
         env:
           DOCKER_SHORT_SHA: ${{ env.DOCKER_SHORT_SHA }}
         run: |
+          # Strip git ref prefix from version
+          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+          # Strip "v" prefix from tag name
+          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+          # Use Docker `latest` tag convention
+          [ "$VERSION" == "main" ] && VERSION=$(echo ${{ github.sha }} | cut -c1-7)
           cd wordpress-fpm
-          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }} .
+          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:$VERSION .
+          echo "::set-output name=version::$VERSION"
           
       # Scan image for vulnerabilities
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: '${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}'
+          image-ref: '${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.build-image.outputs.version }}'
           format: 'sarif'
           output: 'trivy-build-results.sarif'
           ignore-unfixed: true
@@ -118,7 +125,7 @@ jobs:
       - name: Push Docker image to ECR
         id: push-image
         run: |
-          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.build-image.outputs.version }}
         
   Deploy:
     name: deploy
@@ -127,6 +134,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      # Set up the AWS CLI
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION}}
 
       # Install kubectl
       - name: Install kubectl
@@ -155,7 +169,7 @@ jobs:
             manifest/stateful.yml
           replacement-method: defined
         env:
-          IMAGE_TAG: ${{ github.sha }}
+          IMAGE_TAG: ${{ steps.build-image.outputs.version }}
           CHANGE_CAUSE: ${{ github.ref }}
 
       # Apply the updated StatefulSet to the Kubernetes cluster
