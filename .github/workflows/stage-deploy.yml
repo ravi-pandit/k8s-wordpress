@@ -43,12 +43,18 @@ jobs:
       - name: Show the scan file
         run: ls ; cat trivy-scan-results.sarif
 
-      - name: Set Image ID
-        id: image
-        run: |
-          VERSION=('git rev-parse --short "$GITHUB_SHA"')
-          echo "::set-output name=version::$VERSION"
-          echo "$VERSION"
+      # - name: Set Image ID
+      #   id: image
+      #   run: |
+      #     VERSION=('git rev-parse --short "$GITHUB_SHA"')
+      #     echo "::set-output name=version::$VERSION"
+      #     echo "$VERSION"
+
+      - name: Set outputs
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - name: Check outputs
+        run: echo ${{ steps.vars.outputs.sha_short }}
 
   Build:
     name: build
@@ -80,13 +86,13 @@ jobs:
         id: build-image
         run: |
           cd wordpress-fpm
-          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.image.outputs.version }} .
+          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.vars.outputs.sha_short }} .
           
       # Scan image for vulnerabilities
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: '${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.image.outputs.version }}'
+          image-ref: '${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.vars.outputs.sha_short }}'
           format: 'sarif'
           output: 'trivy-build-results.sarif'
           ignore-unfixed: true
@@ -107,7 +113,7 @@ jobs:
       - name: Push Docker image to ECR
         id: push-image
         run: |
-          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.image.outputs.version }}
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.vars.outputs.sha_short }}
         
   Deploy:
     name: deploy
@@ -144,7 +150,7 @@ jobs:
             manifest/stateful.yml
           replacement-method: defined
         env:
-          IMAGE_TAG: ${{ steps.image.outputs.version }}
+          IMAGE_TAG: ${{ steps.vars.outputs.sha_short }}
           CHANGE_CAUSE: ${{ github.ref }}
 
       # Apply the updated StatefulSet to the Kubernetes cluster
