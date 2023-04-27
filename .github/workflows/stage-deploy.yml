@@ -8,8 +8,7 @@ on:
 env:
   ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION}}.amazonaws.com
   ECR_REPOSITORY: wordpress
-  DOCKER_SHORT_SHA:  ${{ github.sha | truncate(7, '') }}
-  # $"(git rev-parse --short "$GITHUB_SHA")"
+  DOCKER_SHORT_SHA: ${{ github.sha | truncate(7, '') }}
   CHANGE_CAUSE: ${{ github.event.release.tag_name }}
   AWS_DEFAULT_OUTPUT: json
   #commitTag: ${{ github.sha }}
