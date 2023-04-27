@@ -8,7 +8,7 @@ metadata:
     kubernetes.io/change-cause: ${CHANGE_CAUSE}
 spec:
   serviceName: "wordpress-site"
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: wordpress-site
