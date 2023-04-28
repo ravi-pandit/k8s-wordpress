@@ -104,14 +104,14 @@ jobs:
         run: |
           # echo "version=${VERSION}" >> $GITHUB_OUTPUT
           cd wordpress-fpm
-          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.image-tag.outputs.version }} .
+          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:$VERSION .
           echo "${{ steps.build-image.outputs.version }}"
           
       # Scan image for vulnerabilities
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: '${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.image-tag.outputs.version }}'
+          image-ref: '${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:$VERSION'
           format: 'sarif'
           output: 'trivy-build-results.sarif'
           ignore-unfixed: true
@@ -132,7 +132,7 @@ jobs:
       - name: Push Docker image to ECR
         id: push-image
         run: |
-          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.image-tag.outputs.version }}
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:$VERSION
         
   Deploy:
     name: deploy
