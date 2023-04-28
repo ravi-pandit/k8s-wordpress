@@ -159,6 +159,17 @@ jobs:
       - name: Set up kubeconfig
         run: aws eks update-kubeconfig --region ap-south-1 --name eks-demo
 
+      # Get latest commit
+      - name: get commit id
+        id: commit
+        run: |
+          # Strip git ref prefix from version
+          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+          # Strip "v" prefix from tag name
+          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+          # Use Docker `latest` tag convention
+          [ "$VERSION" == "main" ] && VERSION=$(echo ${{ github.sha }} | cut -c1-7)
+
       # Update the Kubernetes YAML file with the latest commit id
       - name: Check current cluster
         run: |
@@ -169,7 +180,7 @@ jobs:
             manifest/stateful.yml
           replacement-method: defined
         env:
-          IMAGE_TAG: ${{ steps.build-image.outputs.version }}
+          IMAGE_TAG: ${{ steps.commit.outputs.version }}
           CHANGE_CAUSE: ${{ github.ref }}
 
       # Apply the updated StatefulSet to the Kubernetes cluster
