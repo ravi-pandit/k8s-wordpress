@@ -8,6 +8,7 @@ on:
 env:
   ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION}}.amazonaws.com
   ECR_REPOSITORY: wordpress
+  IMAGE_TAG: $(git rev-parse --short "$GITHUB_SHA")
   # DOCKER_SHORT_SHA: ${{ substr(github.sha, 0, 7) }}
   # CHANGE_CAUSE: ${{ github.event.release.tag_name }}
   AWS_DEFAULT_OUTPUT: json
@@ -177,12 +178,23 @@ jobs:
           kubectl config current-context
       - uses: swdotcom/update-and-apply-kubernetes-configs@v1
         with:
+          namespace: development
           k8-config-file-paths: |
             manifest/stateful.yml
           replacement-method: defined
         env:
           IMAGE_TAG: ${{ steps.commit.outputs.version }}
           CHANGE_CAUSE: ${{ github.ref }}
+      
+      - name: Check deployment image
+        run: |
+          image='kubectl get sts -n development wordpress-site -o jsonpath="{..image}"
+          if [ "$image" = "${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.build-image.outputs.version }}" ]; then
+            echo "Image updated successfully"
+          else
+            echo "Image update failed"
+            exit 1
+          fi
 
       # Apply the updated StatefulSet to the Kubernetes cluster
       - name: Deploy to EKS
