@@ -97,9 +97,9 @@ jobs:
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
           # Use Docker `latest` tag convention
           [ "$VERSION" == "main" ] && VERSION=$(echo ${{ github.sha }} | cut -c1-7)
+          echo "version=$(VERSION)" >> $GITHUB_OUTPUT
           cd wordpress-fpm
           docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.build-image.outputs.version }} .
-          echo "version=$(VERSION)" >> $GITHUB_OUTPUT
           # echo "::set-output name=version::$VERSION"
           
       # Scan image for vulnerabilities
