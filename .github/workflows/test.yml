@@ -38,3 +38,7 @@ jobs:
           cd wordpress-fpm
           echo "$VERSION", "$GITHUB_OUTPUT"
           docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:$VERSION .
+
+      - name: echo version
+        id: echo
+        run : echo "$VERSION"
