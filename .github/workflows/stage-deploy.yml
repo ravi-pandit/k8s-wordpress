@@ -8,7 +8,7 @@ on:
 env:
   ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION}}.amazonaws.com
   ECR_REPOSITORY: wordpress
-  IMAGE_TAG: $(git rev-parse --short "$GITHUB_SHA")
+  IMAGE_TAG: ${{ git rev-parse --short "$GITHUB_SHA" }}
   # DOCKER_SHORT_SHA: ${{ substr(github.sha, 0, 7) }}
   # CHANGE_CAUSE: ${{ github.event.release.tag_name }}
   AWS_DEFAULT_OUTPUT: json
@@ -97,9 +97,10 @@ jobs:
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
           # Use Docker `latest` tag convention
           [ "$VERSION" == "main" ] && VERSION=$(echo ${{ github.sha }} | cut -c1-7)
-          echo "version=$(VERSION)" >> $GITHUB_OUTPUT
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
           cd wordpress-fpm
-          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.build-image.outputs.version }} .
+          #docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.build-image.outputs.version }} .
+          echo "${{ steps.build-image.outputs.version }}"
           # echo "::set-output name=version::$VERSION"
           
       # Scan image for vulnerabilities
