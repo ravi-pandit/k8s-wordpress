@@ -48,24 +48,28 @@
 name: Deploy to EKS
 on:
   push:
+    # paths:
+    # - wordpress-fpm/**
     branches: [ main ]
 
 env:
-  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION}}.amazonaws.com
   ECR_REPOSITORY: wordpress
   AWS_DEFAULT_OUTPUT: json
 
 jobs:
+  
   Build:
-    name: Build Docker image
+    name: build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set short SHA environment variable
         run: echo "export DOCKER_SHORT_SHA=${GITHUB_SHA:0:7}" >> $GITHUB_ENV
 
+      # Build docker image
       - name: Build Docker image
         id: build-image
         run: |
@@ -75,9 +79,13 @@ jobs:
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
           # Use Docker `latest` tag convention
           [ "$VERSION" == "main" ] && VERSION=$(echo ${{ github.sha }} | cut -c1-7)
-          echo "version=${VERSION}" >> $GITHUB_ENV
+          # echo "::set-output name=version::$VERSION"
+          # echo "::version::$VERSION"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
           cd wordpress-fpm
-          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.VERSION }} .
-
-      - name: Echo version
-        run: echo ${{ env.VERSION }}
+          echo "$VERSION", "$GITHUB_OUTPUT"
+          #docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.VERSION }} .
+          
+      - name: echo version
+        id: echo
+        run : echo "${{ env.VERSION }}-${{ env.DOCKER_SHORT_SHA }}"
