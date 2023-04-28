@@ -99,9 +99,8 @@ jobs:
           [ "$VERSION" == "main" ] && VERSION=$(echo ${{ github.sha }} | cut -c1-7)
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           cd wordpress-fpm
-          #docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.build-image.outputs.version }} .
+          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.build-image.outputs.version }} .
           echo "${{ steps.build-image.outputs.version }}"
-          echo "$IMAGE_TAG"
           # echo "::set-output name=version::$VERSION"
           
       # Scan image for vulnerabilities
@@ -144,7 +143,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION}}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       # Install kubectl
       - name: Install kubectl
@@ -173,19 +172,13 @@ jobs:
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
           # Use Docker `latest` tag convention
           [ "$VERSION" == "main" ] && VERSION=$(echo ${{ github.sha }} | cut -c1-7)
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "$VERSION"
 
       # Update the Kubernetes YAML file with the latest commit id
       - name: Check current cluster
         run: |
           kubectl config current-context
-          # # Strip git ref prefix from version
-          # VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-          # # Strip "v" prefix from tag name
-          # [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-          # # Use Docker `latest` tag convention
-          # [ "$VERSION" == "main" ] && VERSION=$(echo ${{ github.sha }} | cut -c1-7)
-          # echo "$VERSION"
       - uses: swdotcom/update-and-apply-kubernetes-configs@v1
         with:
           namespace: development
