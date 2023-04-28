@@ -87,9 +87,7 @@ jobs:
 
       # Build docker image
       - name: Build Docker image
-        id: build-image
-        env:
-          DOCKER_SHORT_SHA: ${{ env.DOCKER_SHORT_SHA }}
+        id: image-tag
         run: |
           # Strip git ref prefix from version
           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
@@ -97,17 +95,23 @@ jobs:
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
           # Use Docker `latest` tag convention
           [ "$VERSION" == "main" ] && VERSION=$(echo ${{ github.sha }} | cut -c1-7)
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      # Build docker image
+      - name: Build Docker image
+        id: build-image
+        env:
+          DOCKER_SHORT_SHA: ${{ env.DOCKER_SHORT_SHA }}
+        run: |
+          # echo "version=${VERSION}" >> $GITHUB_OUTPUT
           cd wordpress-fpm
-          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.build-image.outputs.version }} .
+          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.image-tag.outputs.version }} .
           echo "${{ steps.build-image.outputs.version }}"
-          # echo "::set-output name=version::$VERSION"
           
       # Scan image for vulnerabilities
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: '${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.build-image.outputs.version }}'
+          image-ref: '${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.image-tag.outputs.version }}'
           format: 'sarif'
           output: 'trivy-build-results.sarif'
           ignore-unfixed: true
@@ -128,7 +132,7 @@ jobs:
       - name: Push Docker image to ECR
         id: push-image
         run: |
-          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.build-image.outputs.version }}
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.image-tag.outputs.version }}
         
   Deploy:
     name: deploy
