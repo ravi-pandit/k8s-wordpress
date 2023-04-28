@@ -177,6 +177,13 @@ jobs:
       - name: Check current cluster
         run: |
           kubectl config current-context
+          # # Strip git ref prefix from version
+          # VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+          # # Strip "v" prefix from tag name
+          # [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+          # # Use Docker `latest` tag convention
+          # [ "$VERSION" == "main" ] && VERSION=$(echo ${{ github.sha }} | cut -c1-7)
+          # echo "$VERSION"
       - uses: swdotcom/update-and-apply-kubernetes-configs@v1
         with:
           namespace: development
@@ -184,13 +191,13 @@ jobs:
             manifest/stateful.yml
           replacement-method: defined
         env:
-          IMAGE_TAG: ${{ steps.build-image.outputs.version }}
+          IMAGE_TAG: ${{ steps.commit.outputs.version }}
           CHANGE_CAUSE: ${{ github.ref }}
       
       - name: Check deployment image
         run: |
           image='kubectl get sts -n development wordpress-site -o jsonpath="{..image}"
-          if [ "$image" = "${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.build-image.outputs.version }}" ]; then
+          if [ "$image" = "${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.commit.outputs.version }}" ]; then
             echo "Image updated successfully"
           else
             echo "Image update failed"
