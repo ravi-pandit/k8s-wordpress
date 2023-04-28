@@ -88,4 +88,4 @@ jobs:
           
       - name: echo version
         id: echo
-        run : echo "${{ env.VERSION }}-${{ env.DOCKER_SHORT_SHA }}"
+        run : echo "${{ env.VERSION }}" , "${{ env.DOCKER_SHORT_SHA }}"
