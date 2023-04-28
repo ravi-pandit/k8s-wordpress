@@ -195,7 +195,7 @@ jobs:
       
       - name: Check deployment image
         run: |
-          image='kubectl get sts -n development wordpress-site -o jsonpath="{..image}"
+          image='kubectl get sts -n development wordpress-site -o jsonpath="{..image}"'
           if [ "$image" = "${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.commit.outputs.version }}" ]; then
             echo "Image updated successfully"
           else
