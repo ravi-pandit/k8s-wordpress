@@ -1,0 +1,236 @@
+name: Deploy to EKS
+on:
+  push:
+    # paths:
+    # - wordpress-fpm/**
+    branches: [ main ]
+
+env:
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION}}.amazonaws.com
+  ECR_REPOSITORY: wordpress
+  IMAGE_TAG: $(git rev-parse --short "$GITHUB_SHA")
+  # DOCKER_SHORT_SHA: ${{ substr(github.sha, 0, 7) }}
+  # CHANGE_CAUSE: ${{ github.event.release.tag_name }}
+  AWS_DEFAULT_OUTPUT: json
+  #commitTag: ${{ github.sha }}
+
+jobs:
+  
+  LINT:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Run Trivy vulnerability scanner in repo mode
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          ignore-unfixed: true
+          format: 'sarif'
+          output: 'trivy-scan-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+          vuln-type: 'os,library'
+          scanners: 'vuln,secret'
+        
+
+      # - name: Upload Trivy scan results to GitHub Security tab
+      #   uses: github/codeql-action/upload-sarif@v2
+      #   with:
+      #     sarif_file: 'trivy-scan-results.sarif'
+
+      - name: Show the scan file
+        run: ls ; cat trivy-scan-results.sarif
+
+      # - name: Set Image ID
+      #   id: image
+      #   run: |
+      #     VERSION=('git rev-parse --short "$GITHUB_SHA"')
+      #     echo "::set-output name=version::$VERSION"
+      #     echo "$VERSION"
+
+      # - name: Set outputs
+      #   id: vars
+      #   run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      # - name: Check outputs
+      #   run: echo ${{ steps.vars.outputs.sha_short }}
+
+  Build:
+    name: build
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+  
+      # Set up the AWS CLI
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION}}
+
+      # Login into AWS ECR
+      - name: Login to AWS ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          registry: ${{ env.ECR_REGISTRY }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # - name: Set short SHA environment variable
+      #   run: echo "export DOCKER_SHORT_SHA=${GITHUB_SHA:0:7}" >> $GITHUB_ENV
+
+      # Build docker image
+      - name: Build Docker image
+        id: build-image
+        env:
+          DOCKER_SHORT_SHA: ${{ env.DOCKER_SHORT_SHA }}
+        run: |
+          # Strip git ref prefix from version
+          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+          # Strip "v" prefix from tag name
+          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+          # Use Docker `latest` tag convention
+          [ "$VERSION" == "main" ] && VERSION=$(echo ${{ github.sha }} | cut -c1-7)
+          echo "version=$(VERSION)" >> $GITHUB_OUTPUT
+          cd wordpress-fpm
+          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.build-image.outputs.version }} .
+          # echo "::set-output name=version::$VERSION"
+          
+      # Scan image for vulnerabilities
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.build-image.outputs.version }}'
+          format: 'sarif'
+          output: 'trivy-build-results.sarif'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+          vuln-type: 'os,library'
+          scanners: 'vuln,secret'
+
+      # - name: Upload Trivy scan results to GitHub Security tab
+      #   uses: github/codeql-action/upload-sarif@v2
+      #   with:
+      #     sarif_file: 'trivy-build-results.sarif'
+
+      - name: Show the scan file
+        run: ls ; cat trivy-build-results.sarif 
+
+      # Push docker image
+      - name: Push Docker image to ECR
+        id: push-image
+        run: |
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.build-image.outputs.version }}
+        
+  Deploy:
+    name: deploy
+    runs-on: ubuntu-latest
+    needs: [lint ,build]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up the AWS CLI
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION}}
+
+      # Install kubectl
+      - name: Install kubectl
+        run: |
+          curl -LO https://dl.k8s.io/release/v1.23.0/bin/linux/amd64/kubectl
+          chmod +x ./kubectl
+          mv ./kubectl /usr/local/bin/kubectl
+
+      - name: Install AWS IAM Authenticator
+        run: |
+          curl -o aws-iam-authenticator https://amazon-eks.s3-us-west-1.amazonaws.com/1.20.8/2022-12-01/bin/linux/amd64/aws-iam-authenticator
+          chmod +x ./aws-iam-authenticator
+          mv ./aws-iam-authenticator /usr/local/bin/aws-iam-authenticator
+
+      # Set up the kubeconfig file
+      - name: Set up kubeconfig
+        run: aws eks update-kubeconfig --region ap-south-1 --name eks-demo
+
+      # Get latest commit
+      - name: get commit id
+        id: commit
+        run: |
+          # Strip git ref prefix from version
+          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+          # Strip "v" prefix from tag name
+          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+          # Use Docker `latest` tag convention
+          [ "$VERSION" == "main" ] && VERSION=$(echo ${{ github.sha }} | cut -c1-7)
+          echo "$VERSION"
+
+      # Update the Kubernetes YAML file with the latest commit id
+      - name: Check current cluster
+        run: |
+          kubectl config current-context
+          # # Strip git ref prefix from version
+          # VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+          # # Strip "v" prefix from tag name
+          # [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+          # # Use Docker `latest` tag convention
+          # [ "$VERSION" == "main" ] && VERSION=$(echo ${{ github.sha }} | cut -c1-7)
+          # echo "$VERSION"
+      - uses: swdotcom/update-and-apply-kubernetes-configs@v1
+        with:
+          namespace: development
+          k8-config-file-paths: |
+            manifest/stateful.yml
+          replacement-method: defined
+        env:
+          IMAGE_TAG: ${{ steps.commit.outputs.version }}
+          CHANGE_CAUSE: ${{ github.ref }}
+      
+      - name: Check deployment image
+        run: |
+          image='kubectl get sts -n development wordpress-site -o jsonpath="{..image}"
+          if [ "$image" = "${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.commit.outputs.version }}" ]; then
+            echo "Image updated successfully"
+          else
+            echo "Image update failed"
+            exit 1
+          fi
+
+      # Apply the updated StatefulSet to the Kubernetes cluster
+      - name: Deploy to EKS
+        run: |
+          # Set the current context to the EKS cluster
+          kubectl config get-contexts  
+          kubectl apply -f manifest/stateful.yml
+
+  notify: 
+    runs-on: ubuntu-latest
+    needs: [lint ,build, deploy]
+    steps:
+      # Notify Slack when build is successful
+      - name: Notify Slack on Success
+        if: success()
+        uses: rtCamp/action-slack-notify@v2.0.2
+        with:
+          status: 'success'
+          message: 'Deployment to Kubernetes was successful!'
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+
+      # Notify Slack when build fails
+      - name: Notify Slack on Failure
+        if: failure()
+        uses: rtCamp/action-slack-notify@v2.0.2
+        with:
+          status: 'failure'
+          message: 'Deployment to Kubernetes failed. Please check the logs for more information.'
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
