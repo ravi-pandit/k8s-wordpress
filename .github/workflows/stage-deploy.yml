@@ -169,6 +169,7 @@ jobs:
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
           # Use Docker `latest` tag convention
           [ "$VERSION" == "main" ] && VERSION=$(echo ${{ github.sha }} | cut -c1-7)
+          echo "$VERSION"
 
       # Update the Kubernetes YAML file with the latest commit id
       - name: Check current cluster
