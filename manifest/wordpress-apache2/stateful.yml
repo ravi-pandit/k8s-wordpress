@@ -1,0 +1,68 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: wp-apache
+  namespace: apache
+  annotations:
+    kubernetes.io/change-cause: ${CHANGE_CAUSE}
+spec:
+  serviceName: "wp-apache"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wp-apache
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        app: wp-apache
+        tier: frontend
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: "wp-apache"
+                    operator: In
+                    values:
+                      - "wp-apache"
+              topologyKey: "kubernetes.io/hostname"
+      volumes:
+      - name: wordpress-secret
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: "aws-secrets-manager-apache"
+        #emptyDir: {}
+      # - name: wordpress-with-pvc
+      #   emptyDir: {}
+      containers:
+      - name: wp-apache
+        image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress-apache:${IMAGE_TAG}
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+          name: wp-apache
+        volumeMounts:
+        # - name: wordpress-with-pvc
+        #   mountPath: /var/www/html
+        - name: wp-apache-with-pvc
+          mountPath: /mnt/secrets-store
+          readOnly: true
+        envFrom:
+          - configMapRef:
+              name: wordpress-apache-configmap
+        # envFrom:
+          - secretRef:
+              name: mysql-credentials-apache
+  volumeClaimTemplates:
+  - metadata:
+      name: wp-apache-with-pvc
+    spec:
+      accessModes: [ ReadWriteOnce ]
+      resources:
+        requests:
+          storage: 10Gi

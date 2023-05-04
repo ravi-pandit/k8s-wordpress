@@ -39,8 +39,7 @@ temp/
 wordpress-image/
 robot-shop/
 secrets-store-csi-driver/
-manifest/Green/
-
+wordpress/
 secrets-store-csi-driver
 secrets-store
 wordpress_nginx/wordpress-bkup-configmap.yaml
@@ -49,3 +48,4 @@ terraform/tfplan.ansi
 terraform/tfplan.*
 terraform/*.rtf
 terraform/*.png
+eks-app-mesh-polyglot-demo

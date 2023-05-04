@@ -7,7 +7,7 @@ on:
 
 env:
   ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION}}.amazonaws.com
-  ECR_REPOSITORY: wordpress
+  ECR_REPOSITORY: wordpress-apache
   IMAGE_TAG: $(git rev-parse --short "$GITHUB_SHA")
   # DOCKER_SHORT_SHA: ${{ substr(github.sha, 0, 7) }}
   # CHANGE_CAUSE: ${{ github.event.release.tag_name }}
@@ -104,7 +104,7 @@ jobs:
         env:
           DOCKER_SHORT_SHA: ${{ env.DOCKER_SHORT_SHA }}
         run: |
-          cd wordpress-fpm
+          cd wordpress-apache
           docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.image-tag.outputs.version }} .
           
       # Scan image for vulnerabilities
