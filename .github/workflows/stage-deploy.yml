@@ -105,13 +105,13 @@ jobs:
           DOCKER_SHORT_SHA: ${{ env.DOCKER_SHORT_SHA }}
         run: |
           cd wordpress-apache
-          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.image-tag.outputs.version }} .
+          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }} .
           
       # Scan image for vulnerabilities
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: '${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.image-tag.outputs.version }}'
+          image-ref: '${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}'
           format: 'sarif'
           output: 'trivy-build-results.sarif'
           ignore-unfixed: true
@@ -132,7 +132,7 @@ jobs:
       - name: Push Docker image to ECR
         id: push-image
         run: |
-          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.image-tag.outputs.version }}
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
         
   Deploy:
     name: deploy
@@ -180,18 +180,18 @@ jobs:
           echo "$VERSION"
 
       # Update the Kubernetes YAML file with the latest commit id
-      - name: Check current cluster
-        run: |
-          kubectl config current-context
-      - uses: swdotcom/update-and-apply-kubernetes-configs@v1
-        with:
-          namespace: development
-          k8-config-file-paths: |
-            manifest/wordpress-apache2/stateful.yml
-          replacement-method: defined
-        env:
-          IMAGE_TAG: ${{ steps.commit.outputs.version }}
-          CHANGE_CAUSE: ${{ github.ref }}
+      # - name: Check current cluster
+      #   run: |
+      #     kubectl config current-context
+      # - uses: swdotcom/update-and-apply-kubernetes-configs@v1
+      #   with:
+      #     namespace: development
+      #     k8-config-file-paths: |
+      #       manifest/wordpress-apache2/stateful.yml
+      #     replacement-method: defined
+      #   env:
+      #     IMAGE_TAG: ${{ steps.commit.outputs.version }}
+      #     CHANGE_CAUSE: ${{ github.ref }}
       
       # - name: Check deployment image
       #   run: |
