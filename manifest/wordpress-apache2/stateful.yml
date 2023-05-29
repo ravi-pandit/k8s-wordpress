@@ -41,7 +41,7 @@ spec:
       #   emptyDir: {}
       containers:
       - name: wp-apache
-        image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress-apache:${{ github.sha }}
+        image: 187451058634.dkr.ecr.ap-south-1.amazonaws.com/wordpress-apache:{{ .Values.imageTag }}
         imagePullPolicy: Always
         ports:
         - containerPort: 80

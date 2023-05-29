@@ -202,6 +202,11 @@ jobs:
       #       echo "Image update failed"
       #       exit 1
       #     fi
+      
+      # Update Image
+      - name: Update image tag
+        run: |
+          sed -i "s|{{ .Values.imageTag }}|${{ github.sha }}|" manifest/wordpress-apache2/stateful.yml
 
       # Apply the updated StatefulSet to the Kubernetes cluster
       - name: Deploy to EKS
