@@ -11,7 +11,7 @@ spec:
     targetRevision: HEAD
     path: manifest/wordpress-apache2
   destination: 
-    server: https://kubernetes.default.svc
+    server: https://FF18E84BED6786E63EFADA6E8E31D8EC.gr7.ap-south-1.eks.amazonaws.com
     namespace: apache
 
   syncPolicy:
