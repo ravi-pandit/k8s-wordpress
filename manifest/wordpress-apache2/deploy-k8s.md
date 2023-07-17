@@ -1,0 +1,51 @@
+# Get AWS Details
+aws sts get-caller-identity
+
+# Update the kubeconfig file
+aws eks update-kubeconfig --region ap-south-1 --name eks-demo
+
+# Get the RDS Database Endpoint :- 
+- aws rds describe-db-instances --db-instance-identifier terraform-laravelk8s-1
+Here you will find the Address so copy that address and add that value WP_WT_MYSQL_HOST in wordpress-configmap.yaml
+
+# get the RDS Database:- 
+aws secretsmanager get-secret-value --secret-id terraform-password-3ZKA65vnoZWZUoce 
+
+Here you will find the SecretString so copy that SecretString and add that value for WP_WT_MYSQL_PASSWORD in  wordpress-configmap.yaml
+
+Get OIDC and Update trust policy 
+- aws eks describe-cluster --name eks-demo --query "cluster.identity.oidc.issuer" --output text
+https://oidc.eks.ap-south-1.amazonaws.com/id/38F20E773D57818BFD24D1944BF8EECA
+
+update the OIDC value in Roles > select "AmazonEKSLoadBalancerControllerRole" > Trust relationships > update the OIDC Unique Number.
+
+Or Update value in load-balancer-role-trust-policy.json
+
+# Install certmanager
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.0/cert-manager.yaml
+
+Now Run script inside of alb folder, so it's deploy the load balancer.
+
+In secret.sh file update the password in base64 formate.
+
+echo  'something' | base64
+
+After deploy start.sh file
+Now apply all manifest file changes:-
+
+# kubectl apply -f aws-provider-installer.yaml
+
+kubectl exec -it wordpress-site-fbfcc8555-twk7t -n development -c nginx -- /bin/bash
+
+Setup AWS Load Balancer :- 
+https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html
+
+INstall ingress controller on AWS :- 
+https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html#lbc-install-controller
+
+https://oidc.eks.ap-south-1.amazonaws.com/id/A22E1EA3F6F32F53460D8784E776AD68
+
+serviceaccount
+v2_4_4_ingclass.yaml
+v2_4_4_full.yaml
+namespace
