@@ -12,8 +12,8 @@ data:
   # Database configuration options
   WORDPRESS_DB_NAME: wordpressk8s
   WORDPRESS_DB_USER: admin
-  WORDPRESS_DB_PASSWORD: uHNFDuNcltGAf^pA
-  WORDPRESS_DB_HOST: terraform-laravelk8s-1.c685olbnapdz.ap-south-1.rds.amazonaws.com:3306
+  WORDPRESS_DB_PASSWORD: gRsKN^s6V^7dChJI
+  WORDPRESS_DB_HOST: terraform-laravelk8s-1.c685olbnapdz.ap-south-1.rds.amazonaws.com
   WORDPRESS_DB_CHARSET: utf8mb4
   WORDPRESS_DB_COLLATE: ""
 
