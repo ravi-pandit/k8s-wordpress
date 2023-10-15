@@ -1,0 +1,11 @@
+apiVersion: elbv2.k8s.aws/v1beta1
+kind: TargetGroupBinding
+metadata:
+  name: wordpress-tgb
+  namespace: apache
+spec:
+  serviceRef:
+    name: wp-apache
+    port: http
+  targetGroupARN: arn:aws:elasticloadbalancing:ap-south-1:187451058634:targetgroup/wpsite20230429135729496200000001/78b5b5ac433555ff
+  

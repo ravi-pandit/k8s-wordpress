@@ -1,0 +1,13 @@
+apiVersion: elbv2.k8s.aws/v1beta1
+kind: TargetGroupBinding
+metadata:
+  name: wordpress-tgb
+  namespace: development
+spec:
+  serviceRef:
+    name: wordpress-site
+    port: http
+    # name: green-service
+    # port: http
+  targetGroupARN: arn:aws:elasticloadbalancing:ap-south-1:187451058634:targetgroup/wpsite20230429135729496200000001/78b5b5ac433555ff
+  # targetGroupARN: arn:aws:elasticloadbalancing:ap-south-1:187451058634:targetgroup/green20230429135729673800000002/3f0c1663307e9ed7

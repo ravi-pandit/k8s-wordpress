@@ -1,5 +1,5 @@
 resource "aws_lb_target_group" "wordpress-tg" {
-  name_prefix        = "wordpress-tg"
+  name_prefix        = "wpsite"
   port               = 80
   protocol           = "HTTP"
   vpc_id             = aws_vpc.demo_vpc.id
@@ -10,13 +10,13 @@ resource "aws_lb_target_group" "wordpress-tg" {
     protocol            = "HTTP"
     timeout             = 5
     unhealthy_threshold = 2
-    path                = "/"
+    path                = "/wp-admin/install.php"
   }
 }
 
 
 resource "aws_lb_target_group" "green-tg" {
-  name_prefix        = "green-tg"
+  name_prefix        = "green"
   port               = 80
   protocol           = "HTTP"
   vpc_id             = aws_vpc.demo_vpc.id

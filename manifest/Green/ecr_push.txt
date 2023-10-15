@@ -1,0 +1,17 @@
+export AWS_REGION=$(aws ec2 describe-availability-zones --output text --query 'AvailabilityZones[0].[RegionName]')
+export AWS_REGISTRY_ID=$(aws ecr describe-registry --query registryId --output text)
+export AWS_ECR_REPO=${AWS_REGISTRY_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+
+aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ECR_REPO
+
+cd yellow/
+docker build . -t yellow
+docker tag yellow:latest $AWS_ECR_REPO/yellow:latest
+docker push $AWS_ECR_REPO/yellow:latest
+cd ..
+
+cd green/
+docker build . -t green
+docker tag green:latest $AWS_ECR_REPO/green:latest
+docker push $AWS_ECR_REPO/green:latest
+cd ..

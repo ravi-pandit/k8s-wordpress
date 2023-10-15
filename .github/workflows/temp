@@ -1,0 +1,182 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  namespace: default
+  name: ingress
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/actions.response-503: >
+      {"type":"fixed-response","fixedResponseConfig":{"contentType":"text/plain","statusCode":"503","messageBody":"503 error text"}}
+    alb.ingress.kubernetes.io/actions.redirect-to-eks: >
+      {"type":"redirect","redirectConfig":{"host":"aws.amazon.com","path":"/eks/","port":"443","protocol":"HTTPS","query":"k=v","statusCode":"HTTP_302"}}
+    alb.ingress.kubernetes.io/actions.forward-single-tg: >
+      {"type":"forward","targetGroupARN": "arn-of-your-target-group"}
+    alb.ingress.kubernetes.io/actions.forward-multiple-tg: >
+      {"type":"forward","forwardConfig":{"targetGroups":[{"serviceName":"service-1","servicePort":"http","weight":20},{"serviceName":"service-2","servicePort":80,"weight":20},{"targetGroupARN":"arn-of-your-non-k8s-target-group","weight":60}],"targetGroupStickinessConfig":{"enabled":true,"durationSeconds":200}}}
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /503
+            backend:
+              serviceName: response-503
+              servicePort: use-annotation
+          - path: /eks
+            backend:
+              serviceName: redirect-to-eks
+              servicePort: use-annotation
+          - path: /path1
+            backend:
+              serviceName: forward-single-tg
+              servicePort: use-annotation
+          - path: /path2
+            backend:
+              serviceName: forward-multiple-tg
+              servicePort: use-annotation
+
+==================================================
+- name: Verify Changed files server.js
+        uses: tj-actions/verify-changed-files@v14
+        id: verify-changed-files
+        with:
+          files: |
+             server.js
+             package.json
+
+            
+- name: Deploy NodeJs Socket.io
+        if: steps.verify-changed-files.outputs.files_changed == 'true'
+        env:
+            Staging_PRIVATE_KEY: ${{ secrets.Staging_PRIVATE_KEY  }}
+            Staging_HOSTNAME : ${{ secrets.Staging_Hostname  }}
+            USER_NAME : ${{ secrets.USER_NAME  }}            
+        run: |
+          echo "$Staging_PRIVATE_KEY" > private_key && chmod 600 private_key
+          ssh -o StrictHostKeyChecking=no -i private_key -t ${USER_NAME}@${Staging_HOSTNAME} "sudo su root -c 'whoami; cd /var/www/html/dev/app2; npm install; pm2 status;'"
+
+===========================================================================
+name: Test Action
+on: push
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        # Can't figure out how to get minikube running on Windows Server. Skipping for now.
+        os: [macos-latest, ubuntu-latest]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install kubectl and minikube on MacOS
+        if: ${{ matrix.os == 'macos-latest' }}
+        run: brew install kubectl minikube
+      - name: Start minikube
+        run: minikube start
+
+      # Default replacement option (defined)
+      - name: update-and-apply-kubernetes-configs - defined
+        uses: ./
+        with:
+          k8-config-file-paths: |
+            .github/workflows/k8/config.yaml
+            .github/workflows/k8/deployment.yaml
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+          CHANGE_CAUSE: ${{ github.ref }}
+          SOME_CONFIG: hello
+      - name: Check deployment image
+        run: |
+          image=`kubectl get deployment my-app-deployment -o jsonpath="{..image}"`
+          if [ "$image" = "my-app:${{ github.sha }}" ]; then
+            echo "Image updated successfully"
+          else
+            echo "Image update failed"
+            exit 1
+          fi
+      - name: Check ConfigMap has unmodified values for ENV vars that are not defined
+        run: |
+          some_config_value=`kubectl get configmaps my-app -o jsonpath="{..SOME_CONFIG}"`
+          another_config_value=`kubectl get configmaps my-app -o jsonpath="{..ANOTHER_CONFIG}"`
+          github_sha_value=`kubectl get configmaps my-app -o jsonpath="{..GITHUB_SHA}"`
+          if [ "$some_config_value" = "hello" ] && \
+             [ "$another_config_value" = "\${ANOTHER_CONFIG}" ] && \
+             [ "$github_sha_value" = ${GITHUB_SHA} ]
+          then
+            echo "ConfigMap value updated successfully"
+          else
+            echo "ConfigMap value update failed"
+            exit 1
+          fi
+
+      # Only replace ENV from list
+      - name: update-and-apply-kubernetes-configs - list
+        uses: ./
+        with:
+          k8-config-file-paths: .github/workflows/k8/config.yaml
+          replacement-method: list
+          env-replacement-list: |
+            SOME_CONFIG
+        env:
+          SOME_CONFIG: hello
+      - name: Check ConfigMap has unmodified values for ENV vars not in list
+        run: |
+          some_config_value=`kubectl get configmaps my-app -o jsonpath="{..SOME_CONFIG}"`
+          another_config_value=`kubectl get configmaps my-app -o jsonpath="{..ANOTHER_CONFIG}"`
+          github_sha_value=`kubectl get configmaps my-app -o jsonpath="{..GITHUB_SHA}"`
+          if [ "$some_config_value" = "hello" ] && \
+             [ "$another_config_value" = "\${ANOTHER_CONFIG}" ] && \
+             [ "$github_sha_value" = "\$GITHUB_SHA" ]
+          then
+            echo "ConfigMap value updated successfully"
+          else
+            echo "ConfigMap value update failed"
+            exit 1
+          fi
+
+      # Replace all $ENV vars
+      - name: update-and-apply-kubernetes-configs - all
+        uses: ./
+        with:
+          k8-config-file-paths: .github/workflows/k8/config.yaml
+          replacement-method: all
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+          SOME_CONFIG: hello
+      - name: Check ConfigMap has empty values for undefined ENV vars
+        run: |
+          some_config_value=`kubectl get configmaps my-app -o jsonpath="{..SOME_CONFIG}"`
+          another_config_value=`kubectl get configmaps my-app -o jsonpath="{..ANOTHER_CONFIG}"`
+          github_sha_value=`kubectl get configmaps my-app -o jsonpath="{..GITHUB_SHA}"`
+          if [ "$some_config_value" = "hello" ] && \
+             [ "$another_config_value" = "" ] && \
+             [ "$github_sha_value" = ${GITHUB_SHA} ]
+          then
+            echo "ConfigMap value updated successfully"
+          else
+            echo "ConfigMap value update failed"
+            exit 1
+          fi
+
+      # Namespace
+      - name: Create namespace
+        run: kubectl create ns custom-namespace
+      - name: update-and-apply-kubernetes-configs - namespace
+        uses: ./
+        with:
+          namespace: custom-namespace
+          k8-config-file-paths: |
+            .github/workflows/k8/config.yaml
+        env:
+          SOME_CONFIG: hello
+      - name: Check ConfigMap is in the correct namespace
+        run: |
+          namespace=`kubectl get configmaps my-app -n custom-namespace -o jsonpath="{..namespace}"`
+          if [ "$namespace" = "custom-namespace" ]
+          then
+            echo "ConfigMap created in correct namespace"
+          else
+            echo "ConfigMap created in wrong namespace"
+            exit 1
+          fi
